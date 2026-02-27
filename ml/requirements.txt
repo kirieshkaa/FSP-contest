@@ -2,6 +2,5 @@ pandas
 numpy
 fastapi
 uvicorn
-matplotlib
 requests
 python-dateutil
