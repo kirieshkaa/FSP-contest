@@ -1,0 +1,29 @@
+from app.presentation.schemas.auth import (
+    RegisterRequest,
+    RegisterResponse,
+    LoginRequest,
+    LoginResponse,
+    RefreshResponse,
+    LogoutResponse,
+    TokenResponse,
+    ErrorResponse,
+)
+from app.presentation.schemas.password_reset import (
+    PasswordResetRequest,
+    PasswordResetUpdateRequest,
+    PasswordResetResponse,
+)
+
+__all__ = [
+    "RegisterRequest",
+    "RegisterResponse",
+    "LoginRequest",
+    "LoginResponse",
+    "RefreshResponse",
+    "LogoutResponse",
+    "TokenResponse",
+    "ErrorResponse",
+    "PasswordResetRequest",
+    "PasswordResetUpdateRequest",
+    "PasswordResetResponse",
+]

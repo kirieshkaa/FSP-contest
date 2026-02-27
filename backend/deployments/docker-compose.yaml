@@ -1,0 +1,58 @@
+name: app-db
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: "app-database"
+    restart: unless-stopped
+    healthcheck:
+      test: pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - "postgres-app-db-data:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: $POSTGRES_DB
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT}:5432"
+    networks:
+      postgres-net:
+    env_file:
+      - ./.env
+
+  migrate:
+    image: "migrate/migrate"
+    container_name: "app-migrate"
+    restart: "on-failure:3"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    command:
+      - "-path=/migrations"
+      - "-database=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      - "up"
+    volumes:
+      - "${MIGRATIONS_DIR}:/migrations"
+    networks:
+      postgres-net:
+
+  redis:
+    image: "redis:latest"
+    container_name: "app-redis"
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    ports:
+      - "${REDIS_PORT}:6379"
+
+
+
+volumes:
+  postgres-app-db-data:
+
+networks:
+  postgres-net:
