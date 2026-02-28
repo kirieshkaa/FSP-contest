@@ -49,7 +49,10 @@ export default function LoginPage() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (email.trim() && password.trim()) {
+    if (email.trim().toLowerCase() === 'admin') {
+      localStorage.setItem('isAdmin', 'true')
+      router.push('/admin')
+    } else if (email.trim() && password.trim()) {
       router.push('/dashboard')
     } else {
       alert('Пожалуйста, введите Email и пароль')
@@ -64,8 +67,8 @@ export default function LoginPage() {
         <h2 className="text-xl font-semibold mb-4 text-center">ВОЙТИ В СИСТЕМУ</h2>
         <form onSubmit={onSubmit}>
           <div className="mb-3">
-            <label className="block text-xs uppercase tracking-wide mb-1">EMAIL</label>
-            <input className="w-full px-3 py-2 rounded border" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="user@example.com" required />
+            <label className="block text-xs uppercase tracking-wide mb-1">ЛОГИН</label>
+            <input className="w-full px-3 py-2 rounded border" type="text" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Введите логин" required />
           </div>
           <div className="mb-3">
             <label className="block text-xs uppercase tracking-wide mb-1">ПАРОЛЬ</label>

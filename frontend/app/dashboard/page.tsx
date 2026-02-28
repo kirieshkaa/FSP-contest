@@ -7,10 +7,130 @@ import { ForecastTable } from '@/components/forecast-table'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { BarChart3, Upload, AlertCircle, Menu, X, Sun, Moon } from 'lucide-react'
+import { BarChart3, Upload, AlertCircle, Menu, X, Sun, Moon, Download } from 'lucide-react'
 import { defaultScenarios, scenarioDatasets } from '@/lib/mock-data'
-import type { Scenario, ScenarioParams, ScenarioFile } from '@/lib/types'
+import type { Scenario, ScenarioParams, ScenarioFile, ForecastRow } from '@/lib/types'
 import { useTheme } from 'next-themes'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
+
+type ExportFormat = 'csv' | 'xlsx' | 'json' | 'pdf'
+
+function exportToCSV(data: ForecastRow[], filename: string) {
+  const headers = ['Месяц', 'Средние дни доения', 'Дойные, гол', 'Сухостойные, гол', 'Собственные первотёлки, гол', 'Купленные нетели, гол']
+  const rows = data.map(row => [
+    row.month,
+    row.avgMilkingDays.toFixed(1),
+    row.milkingHeadCount,
+    row.dryHeadCount,
+    row.ownHeifers,
+    row.purchasedHeifers
+  ].join(';'))
+  
+  const csvContent = '\ufeff' + [headers.join(';'), ...rows].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `${filename}.csv`
+  link.click()
+}
+
+function exportToXLSX(data: ForecastRow[], filename: string) {
+  const headers = ['Месяц', 'Средние дни доения', 'Дойные, гол', 'Сухостойные, гол', 'Собственные первотёлки, гол', 'Купленные нетели, гол']
+  const rows = data.map(row => [
+    row.month,
+    row.avgMilkingDays,
+    row.milkingHeadCount,
+    row.dryHeadCount,
+    row.ownHeifers,
+    row.purchasedHeifers
+  ])
+  
+  let xlsxContent = headers.join('\t') + '\n'
+  rows.forEach(row => {
+    xlsxContent += row.join('\t') + '\n'
+  })
+  
+  const blob = new Blob([xlsxContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `${filename}.xls`
+  link.click()
+}
+
+function exportToJSON(data: ForecastRow[], filename: string) {
+  const jsonContent = JSON.stringify(data, null, 2)
+  const blob = new Blob([jsonContent], { type: 'application/json' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `${filename}.json`
+  link.click()
+}
+
+async function exportToPDF(elementId: string, filename: string) {
+  const element = document.getElementById(elementId)
+  if (!element) {
+    alert('Элемент не найден')
+    return
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  try {
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight
+    })
+    
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF({
+      orientation: canvas.width > canvas.height ? 'l' : 'p',
+      unit: 'mm',
+      format: 'a4'
+    })
+    
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    const imgWidth = pdfWidth - 20
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+    
+    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
+    pdf.save(`${filename}.pdf`)
+    
+    alert('PDF успешно создан!')
+  } catch (e) {
+    console.error('Ошибка экспорта PDF:', e)
+    alert('Ошибка при создании PDF: ' + (e as Error).message)
+  }
+}
+
+function handleExport(format: ExportFormat, data: ForecastRow[], scenarioName: string) {
+  const filename = `forecast_${scenarioName}_${new Date().toISOString().split('T')[0]}`
+  switch (format) {
+    case 'csv':
+      exportToCSV(data, filename)
+      break
+    case 'xlsx':
+      exportToXLSX(data, filename)
+      break
+    case 'json':
+      exportToJSON(data, filename)
+      break
+    case 'pdf':
+      exportToPDF('forecast-content', filename)
+      break
+  }
+}
 
 function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -188,6 +308,28 @@ export default function DashboardPage() {
               <BarChart3 className="size-3.5" />
               <span className="hidden sm:inline">Рассчитать</span>
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                  <Download className="size-3.5" />
+                  <span className="hidden sm:inline">Скачать</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv', scenarioData.slice(0, periodMonths), activeScenario?.name || 'scenario')}>
+                  CSV (.csv)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('xlsx', scenarioData.slice(0, periodMonths), activeScenario?.name || 'scenario')}>
+                  Excel (.xls)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('json', scenarioData.slice(0, periodMonths), activeScenario?.name || 'scenario')}>
+                  JSON (.json)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf', scenarioData.slice(0, periodMonths), activeScenario?.name || 'scenario')}>
+                  PDF с графиками
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ThemeToggle className="ml-2" />
           </div>
         </header>
@@ -213,7 +355,7 @@ export default function DashboardPage() {
               <Skeleton className="h-48 rounded-lg" />
             </div>
           ) : (
-            <div className="flex flex-col gap-4 sm:gap-6">
+            <div id="forecast-content" className="flex flex-col gap-4 sm:gap-6">
               {false && (
                 <Alert variant="destructive">
                   <AlertCircle className="size-4" />

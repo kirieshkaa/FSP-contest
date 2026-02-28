@@ -1,4 +1,4 @@
-import type { Scenario, ForecastRow } from "./types"
+import type { Scenario, ForecastRow, User } from "./types"
 
 // Simple deterministic PRNG (mulberry32) to avoid hydration mismatches
 function mulberry32(seed: number) {
@@ -111,4 +111,10 @@ export const defaultScenarios: Scenario[] = [
     ],
     activeFileId: "f5",
   },
+]
+
+export const mockUsers: User[] = [
+  { id: "1", name: "admin", email: "admin@example.com", password: "admin", isAdmin: true },
+  { id: "2", name: "Иван Петров", email: "ivan@example.com", password: "password123", isAdmin: false },
+  { id: "3", name: "Анна Сидорова", email: "anna@example.com", password: "password456", isAdmin: false },
 ]

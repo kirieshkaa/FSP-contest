@@ -37,15 +37,15 @@ type ChartSeries = {
 }
 
 const herdSeries: ChartSeries[] = [
-  { id: "milkingDays", key: "avgMilkingDays", name: "Средние дни доения", color: "var(--chart-1)" },
-  { id: "milkingHerd", key: "milkingHeadCount", name: "Дойное стадо", color: "var(--chart-2)" },
-  { id: "allAdults", key: "allAdults", name: "Все взрослые", color: "var(--chart-3)" },
-  { id: "milk", key: "milk", name: "Молоко", color: "var(--chart-4)" },
+  { id: "milkingDays", key: "avgMilkingDays", name: "Средние дни доения", color: "#3b82f6" },
+  { id: "milkingHerd", key: "milkingHeadCount", name: "Дойное стадо", color: "#10b981" },
+  { id: "allAdults", key: "allAdults", name: "Все взрослые", color: "#f59e0b" },
+  { id: "milk", key: "milk", name: "Молоко", color: "#ef4444" },
 ]
 
 const heifersSeries: ChartSeries[] = [
-  { id: "ownHeifers", key: "ownHeifers", name: "Собственные первотёлки", color: "var(--chart-1)" },
-  { id: "purchasedHeifers", key: "purchasedHeifers", name: "Купленные нетели", color: "var(--chart-2)" },
+  { id: "ownHeifers", key: "ownHeifers", name: "Собственные первотёлки", color: "#3b82f6" },
+  { id: "purchasedHeifers", key: "purchasedHeifers", name: "Купленные нетели", color: "#10b981" },
 ]
 
 export function ForecastChart({
@@ -60,7 +60,7 @@ export function ForecastChart({
     avgMilkingDays: true,
     milkingHeadCount: true,
     allAdults: true,
-    milk: true,
+    milk: false,
   })
   
   const [visibleHeifers, setVisibleHeifers] = useState<Record<string, boolean>>({

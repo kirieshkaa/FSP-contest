@@ -33,3 +33,11 @@ export interface ForecastRow {
 }
 
 export type PeriodKey = "1" | "12" | "36"
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  password: string
+  isAdmin: boolean
+}
