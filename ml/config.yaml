@@ -7,8 +7,8 @@ simulation:
   params_file: ${PARAMS_FILE:-simulation_model.pkl}
   default_params:
     age_first_insem_max: 395
-    prob_insem_month: 0.20
-    gestation_mean: 282
+    prob_insem_month: 0.50
+    gestation_mean: 280
     dry_period: 220
     culling_rate_default: 0.025
     death_prob_monthly_by_lact: {}
