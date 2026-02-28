@@ -1,35 +1,55 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Upload, FileCheck, FileWarning, X } from "lucide-react"
+import { Upload, FileText, Trash2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import type { ScenarioFile } from "@/lib/types"
 
 interface DataUploadProps {
-  activeDataset: string
-  onDatasetChange: (ds: string) => void
+  files: ScenarioFile[]
+  activeFileId: string | null
+  onFileSelect: (fileId: string) => void
+  onFileAdd: (file: ScenarioFile) => void
+  onFileRemove: (fileId: string) => void
 }
 
-export function DataUpload({ activeDataset, onDatasetChange }: DataUploadProps) {
-  const [file, setFile] = useState<{ name: string; rows: number; valid: boolean } | null>(null)
+export function DataUpload({ 
+  files, 
+  activeFileId, 
+  onFileSelect, 
+  onFileAdd, 
+  onFileRemove 
+}: DataUploadProps) {
   const [dragOver, setDragOver] = useState(false)
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
     const f = e.dataTransfer.files?.[0]
-    if (f) {
-      setFile({ name: f.name, rows: 1247, valid: f.name.endsWith(".csv") })
+    if (f && f.name.endsWith(".csv")) {
+      const newFile: ScenarioFile = {
+        id: `f${Date.now()}`,
+        name: f.name,
+        rows: Math.floor(Math.random() * 1000) + 500,
+        uploadedAt: new Date().toLocaleDateString("ru-RU"),
+      }
+      onFileAdd(newFile)
     }
-  }, [])
+  }, [onFileAdd])
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
-    if (f) {
-      setFile({ name: f.name, rows: 1247, valid: f.name.endsWith(".csv") })
+    if (f && f.name.endsWith(".csv")) {
+      const newFile: ScenarioFile = {
+        id: `f${Date.now()}`,
+        name: f.name,
+        rows: Math.floor(Math.random() * 1000) + 500,
+        uploadedAt: new Date().toLocaleDateString("ru-RU"),
+      }
+      onFileAdd(newFile)
     }
-  }, [])
+  }, [onFileAdd])
 
   return (
     <div className="flex flex-col gap-3">
@@ -50,15 +70,15 @@ export function DataUpload({ activeDataset, onDatasetChange }: DataUploadProps) 
           }
         }}
         className={cn(
-          "flex flex-col items-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors cursor-pointer",
+          "flex flex-col items-center gap-1 rounded-lg border-2 border-dashed px-4 py-3 text-center transition-colors cursor-pointer",
           dragOver
             ? "border-primary bg-primary/5"
             : "border-border hover:border-primary/40 hover:bg-muted/50"
         )}
       >
-        <Upload className="size-5 text-muted-foreground" />
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {"Загрузите CSV (разделитель ;, даты DD.MM.YYYY)"}
+        <Upload className="size-4 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground">
+          Перетащите CSV или нажмите
         </p>
         <input
           id="csv-upload"
@@ -70,55 +90,53 @@ export function DataUpload({ activeDataset, onDatasetChange }: DataUploadProps) 
         />
       </div>
 
-      {file && (
-        <div
-          className={cn(
-            "flex items-center gap-2 rounded-md border px-3 py-2 text-xs",
-            file.valid
-              ? "border-accent/30 bg-accent/5 text-accent"
-              : "border-destructive/30 bg-destructive/5 text-destructive"
-          )}
-        >
-          {file.valid ? (
-            <FileCheck className="size-3.5 shrink-0" />
-          ) : (
-            <FileWarning className="size-3.5 shrink-0" />
-          )}
-          <span className="truncate flex-1">{file.name}</span>
-          <span className="text-muted-foreground shrink-0">
-            {file.rows} строк
+      {files.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted-foreground">
+            Файлы ({files.length})
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setFile(null)
-            }}
-            className="text-muted-foreground hover:text-foreground shrink-0"
-            aria-label="Сбросить файл"
-          >
-            <X className="size-3.5" />
-          </button>
+          <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+            {files.map((file) => (
+              <div
+                key={file.id}
+                onClick={() => onFileSelect(file.id)}
+                className={cn(
+                  "flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs cursor-pointer transition-colors group",
+                  activeFileId === file.id
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:bg-muted/50"
+                )}
+              >
+                <FileText className={cn(
+                  "size-4 shrink-0", 
+                  activeFileId === file.id ? "text-primary" : "text-muted-foreground"
+                )} />
+                <span className="truncate flex-1 font-medium">{file.name}</span>
+                <span className="text-muted-foreground shrink-0 text-[10px]">
+                  {file.rows} строк
+                </span>
+                {activeFileId === file.id && (
+                  <Check className="size-3.5 text-primary shrink-0" />
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onFileRemove(file.id)
+                  }}
+                  className="text-muted-foreground hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Удалить файл"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+      ) : (
+        <p className="text-xs text-muted-foreground text-center py-2">
+          Нет прикреплённых файлов
+        </p>
       )}
-
-      <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">
-          Или выберите датасет
-        </span>
-        <Tabs value={activeDataset} onValueChange={onDatasetChange}>
-          <TabsList className="w-full">
-            <TabsTrigger value="1" className="flex-1 text-xs">
-              Датасет 1
-            </TabsTrigger>
-            <TabsTrigger value="2" className="flex-1 text-xs">
-              Датасет 2
-            </TabsTrigger>
-            <TabsTrigger value="3" className="flex-1 text-xs">
-              Датасет 3
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
     </div>
   )
 }

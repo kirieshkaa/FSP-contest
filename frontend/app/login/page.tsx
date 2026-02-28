@@ -13,7 +13,7 @@ function ThemeToggle({ className = '' }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <button className={`theme-toggle ${className}`} aria-label="Переключить тему">
+      <button className={`theme-toggle fixed top-5 right-5 z-50 w-11 h-11 rounded-full border border-white/30 bg-white/10 backdrop-blur text-white flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-110 ${className}`} aria-label="Переключить тему">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
         </svg>
@@ -25,7 +25,7 @@ function ThemeToggle({ className = '' }: { className?: string }) {
 
   return (
     <button
-      className={`theme-toggle ${className}`}
+      className={`theme-toggle fixed top-5 right-5 z-50 w-11 h-11 rounded-full border border-white/30 bg-white/10 backdrop-blur text-white flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-110 ${className}`}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label="Переключить тему"
     >
@@ -58,32 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 p-6 relative">
-      <ThemeToggle className="theme-toggle-login" />
-
-      <style jsx>{`
-        .theme-toggle-login {
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          z-index: 100;
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          border: 1px solid rgba(255,255,255,0.3);
-          background: rgba(255,255,255,0.1);
-          backdrop-filter: blur(10px);
-          color: white;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-        }
-        .theme-toggle-login:hover {
-          background: rgba(255,255,255,0.2);
-          transform: scale(1.1);
-        }
-      `}</style>
+      <ThemeToggle />
 
       <section className="w-full max-w-md bg-white/95 dark:bg-slate-800/90 rounded-xl shadow-xl p-6">
         <h2 className="text-xl font-semibold mb-4 text-center">ВОЙТИ В СИСТЕМУ</h2>

@@ -11,7 +11,7 @@ import { ScenarioList } from "@/components/scenario-list"
 import { ScenarioDialog } from "@/components/scenario-dialog"
 import { DataUpload } from "@/components/data-upload"
 import { ParamsForm } from "@/components/params-form"
-import type { Scenario, ScenarioParams } from "@/lib/types"
+import type { Scenario, ScenarioParams, ScenarioFile } from "@/lib/types"
 import { Database, SlidersHorizontal } from "lucide-react"
 import { useState } from "react"
 
@@ -20,10 +20,12 @@ interface AppSidebarProps {
   activeScenarioId: string
   onSelectScenario: (id: string) => void
   onCreateScenario: (name: string) => void
-  activeDataset: string
-  onDatasetChange: (ds: string) => void
   params: ScenarioParams
   onParamsChange: (p: ScenarioParams) => void
+  activeFileId: string | null
+  onFileSelect: (fileId: string) => void
+  onFileAdd: (file: ScenarioFile) => void
+  onFileRemove: (fileId: string) => void
 }
 
 export function AppSidebar({
@@ -31,10 +33,12 @@ export function AppSidebar({
   activeScenarioId,
   onSelectScenario,
   onCreateScenario,
-  activeDataset,
-  onDatasetChange,
   params,
   onParamsChange,
+  activeFileId,
+  onFileSelect,
+  onFileAdd,
+  onFileRemove,
 }: AppSidebarProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -76,8 +80,11 @@ export function AppSidebar({
             </AccordionTrigger>
             <AccordionContent className="pb-2">
               <DataUpload
-                activeDataset={activeDataset}
-                onDatasetChange={onDatasetChange}
+                files={scenarios.find(s => s.id === activeScenarioId)?.files || []}
+                activeFileId={activeFileId}
+                onFileSelect={onFileSelect}
+                onFileAdd={onFileAdd}
+                onFileRemove={onFileRemove}
               />
             </AccordionContent>
           </AccordionItem>

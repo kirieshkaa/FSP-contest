@@ -35,11 +35,15 @@ function generateForecastData(
       baseDays + trend * i + (Math.sin(i * 0.7) * noise + rng() * noise * 0.3)
     const milking = 420 + Math.round(Math.sin(i * 0.4) * 30) - Math.round(trend * i * 0.8)
     const dry = 80 + Math.round(Math.cos(i * 0.5) * 15)
+    const ownHeifers = Math.round(50 + Math.sin(i * 0.3) * 15 + rng() * 10)
+    const purchasedHeifers = Math.round(10 + Math.sin(i * 0.5) * 5 + rng() * 5)
     rows.push({
       month: monthStr,
       avgMilkingDays: Math.round(val * 10) / 10,
       milkingHeadCount: Math.max(200, milking),
       dryHeadCount: Math.max(30, dry),
+      ownHeifers: Math.max(20, ownHeifers),
+      purchasedHeifers: Math.max(0, purchasedHeifers),
     })
   }
   return rows
@@ -65,8 +69,12 @@ export const defaultScenarios: Scenario[] = [
       heifersPurchasePerMonth: 0,
       ownHeifersPercent: 15,
       forecastDate: "26.02.2029",
-      showBaseline: true,
     },
+    files: [
+      { id: "f1", name: "herd_data_2025.csv", rows: 1247, uploadedAt: "26.02.2026" },
+      { id: "f2", name: "milking_january.csv", rows: 856, uploadedAt: "25.02.2026" },
+    ],
+    activeFileId: "f1",
   },
   {
     id: "2",
@@ -79,8 +87,12 @@ export const defaultScenarios: Scenario[] = [
       heifersPurchasePerMonth: 0,
       ownHeifersPercent: 10,
       forecastDate: "26.02.2029",
-      showBaseline: true,
     },
+    files: [
+      { id: "f3", name: "herd_data_2025.csv", rows: 1247, uploadedAt: "20.02.2026" },
+      { id: "f4", name: "milking_february.csv", rows: 932, uploadedAt: "18.02.2026" },
+    ],
+    activeFileId: "f3",
   },
   {
     id: "3",
@@ -93,7 +105,10 @@ export const defaultScenarios: Scenario[] = [
       heifersPurchasePerMonth: 20,
       ownHeifersPercent: 15,
       forecastDate: "26.02.2029",
-      showBaseline: false,
     },
+    files: [
+      { id: "f5", name: "herd_jan2026.csv", rows: 1150, uploadedAt: "15.02.2026" },
+    ],
+    activeFileId: "f5",
   },
 ]

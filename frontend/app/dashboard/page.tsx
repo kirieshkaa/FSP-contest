@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { BarChart3, Upload, AlertCircle, Menu, X, Sun, Moon } from 'lucide-react'
-import { defaultScenarios, baselineData, scenarioDatasets } from '@/lib/mock-data'
-import type { Scenario, ScenarioParams } from '@/lib/types'
+import { defaultScenarios, scenarioDatasets } from '@/lib/mock-data'
+import type { Scenario, ScenarioParams, ScenarioFile } from '@/lib/types'
 import { useTheme } from 'next-themes'
 
 function ThemeToggle({ className = '' }: { className?: string }) {
@@ -47,7 +47,6 @@ export default function DashboardPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>(defaultScenarios)
   const [activeId, setActiveId] = useState('1')
   const [period, setPeriod] = useState<number>(36)
-  const [activeDataset, setActiveDataset] = useState('1')
   const [loading, setLoading] = useState(false)
   const [hasData, setHasData] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -80,18 +79,53 @@ export default function DashboardPage() {
       name,
       updatedAt: 'только что',
       color: 'bg-chart-3',
-      params: {
-        baseDate: '26.02.2026',
-        exitRatePercent: 3,
-        heifersPurchasePerMonth: 0,
-        ownHeifersPercent: 15,
-        forecastDate: '26.02.2029',
-        showBaseline: true,
-      },
+        params: {
+          baseDate: '26.02.2026',
+          exitRatePercent: 3,
+          heifersPurchasePerMonth: 0,
+          ownHeifersPercent: 15,
+          forecastDate: '26.02.2029',
+        },
+      files: [],
+      activeFileId: null,
     }
     setScenarios((prev) => [...prev, newScenario])
     setActiveId(newId)
   }, [])
+
+  const handleFileSelect = useCallback((fileId: string) => {
+    setScenarios((prev) =>
+      prev.map((s) => (s.id === activeId ? { ...s, activeFileId: fileId } : s))
+    )
+    setHasData(true)
+  }, [activeId])
+
+  const handleFileAdd = useCallback((file: ScenarioFile) => {
+    setScenarios((prev) =>
+      prev.map((s) => {
+        if (s.id !== activeId) return s
+        const newFiles = [...s.files, file]
+        return { ...s, files: newFiles, activeFileId: file.id }
+      })
+    )
+    setHasData(true)
+  }, [activeId])
+
+  const handleFileRemove = useCallback((fileId: string) => {
+    setScenarios((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id !== activeId) return s
+        const newFiles = s.files.filter((f) => f.id !== fileId)
+        const newActiveId = s.activeFileId === fileId 
+          ? (newFiles.length > 0 ? newFiles[0].id : null)
+          : s.activeFileId
+        return { ...s, files: newFiles, activeFileId: newActiveId }
+      })
+      const scenario = updated.find((s) => s.id === activeId)
+      return updated
+    })
+    setHasData(true)
+  }, [activeId])
 
   const handleCalculate = useCallback(() => {
     setLoading(true)
@@ -120,13 +154,12 @@ export default function DashboardPage() {
             setSidebarOpen(false)
           }}
           onCreateScenario={handleCreateScenario}
-          activeDataset={activeDataset}
-          onDatasetChange={(ds) => {
-            setActiveDataset(ds)
-            setHasData(true)
-          }}
           params={activeScenario?.params}
           onParamsChange={handleParamsChange}
+          activeFileId={activeScenario?.activeFileId ?? null}
+          onFileSelect={handleFileSelect}
+          onFileAdd={handleFileAdd}
+          onFileRemove={handleFileRemove}
         />
       </div>
 
@@ -192,8 +225,6 @@ export default function DashboardPage() {
 
               <ForecastChart
                 scenarioData={scenarioData}
-                baselineData={baselineData}
-                showBaseline={activeScenario?.params.showBaseline}
                 periodMonths={periodMonths}
                 scenarioName={activeScenario?.name}
               />

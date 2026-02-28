@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
+import ClickSparkProvider from '@/components/click-spark-provider'
 import './globals.css'
 
 const _inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <body className={`${_inter.variable} ${_jetbrainsMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <ClickSparkProvider />
           {children}
           <Analytics />
         </ThemeProvider>

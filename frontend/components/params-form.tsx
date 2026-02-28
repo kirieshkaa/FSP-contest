@@ -3,7 +3,6 @@
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 import type { ScenarioParams } from "@/lib/types"
@@ -99,25 +98,10 @@ export function ParamsForm({ params, onChange }: ParamsFormProps) {
         />
       </div>
 
-      <div className="flex items-center justify-between">
-        <Label htmlFor="show-baseline" className="text-xs cursor-pointer">
-          Показывать базовый прогноз
-        </Label>
-        <Switch
-          id="show-baseline"
-          checked={params.showBaseline}
-          onCheckedChange={(v) => update({ showBaseline: v })}
-        />
-      </div>
-
       <Button variant="secondary" size="sm" className="w-full gap-2 text-xs">
         <Download className="size-3.5" />
         Скачать прогноз CSV
       </Button>
-
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
-        {"Средние дни доения = сумма дней доения дойных / количество дойных (сухостойные не входят)"}
-      </p>
     </div>
   )
 }
