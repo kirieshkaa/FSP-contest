@@ -1,0 +1,27 @@
+[project]
+name = "cattle-simulator"
+version = "3.0.0"
+description = "API for cattle herd dynamics simulation"
+authors = [{name = "Your Name", email = "your.email@example.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.24.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "python-dateutil>=2.8.2",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+    "python-multipart>=0.0.6",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "I"]
+ignore = []
