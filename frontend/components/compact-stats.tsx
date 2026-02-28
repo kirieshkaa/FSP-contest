@@ -9,9 +9,9 @@ interface CompactStatsProps {
 }
 
 export function CompactStats({ data, customDateValue }: CompactStatsProps) {
-  const now = data[0]?.avgMilkingDays ?? 0
-  const in12 = data[Math.min(11, data.length - 1)]?.avgMilkingDays ?? 0
-  const in36 = data[Math.min(35, data.length - 1)]?.avgMilkingDays ?? 0
+  const now = data[0]?.avg_dim ?? 0
+  const in12 = data[Math.min(11, data.length - 1)]?.avg_dim ?? 0
+  const in36 = data[Math.min(35, data.length - 1)]?.avg_dim ?? 0
 
   const stats = [
     { label: "Сейчас", value: now },

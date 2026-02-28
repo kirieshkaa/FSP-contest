@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { login, isAuthenticated, getBaseUrl } from '@/lib/api'
+import { register, isAuthenticated, getBaseUrl } from '@/lib/api'
+import { useToast } from '@/hooks/use-toast'
 
 function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -43,33 +44,45 @@ function ThemeToggle({ className = '' }: { className?: string }) {
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const baseUrl = getBaseUrl()
 
   useEffect(() => {
     if (isAuthenticated()) {
-      router.push(getBaseUrl() + '/dashboard')
+      router.push(baseUrl + '/dashboard')
     }
   }, [router])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (password !== confirmPassword) {
+      setError('Пароли не совпадают')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Пароль должен быть не менее 8 символов')
+      return
+    }
+
     setLoading(true)
 
     try {
-      const data = await login(username, password)
-      if (data.role === 'admin') {
-        router.push(getBaseUrl() + '/admin')
-      } else {
-        router.push(getBaseUrl() + '/dashboard')
-      }
+      await register({ username, email, password })
+      toast({ title: 'Успешная регистрация', description: 'Ожидайте одобрения администратора' })
+      router.push(baseUrl + '/login')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка входа')
+      setError(err instanceof Error ? err.message : 'Ошибка регистрации')
     } finally {
       setLoading(false)
     }
@@ -80,7 +93,7 @@ export default function LoginPage() {
       <ThemeToggle />
 
       <section className="w-full max-w-md bg-white/95 dark:bg-slate-800/90 rounded-xl shadow-xl p-6">
-        <h2 className="text-xl font-semibold mb-4 text-center">ВОЙТИ В СИСТЕМУ</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center">РЕГИСТРАЦИЯ</h2>
         <form onSubmit={onSubmit}>
           {error && (
             <div className="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
@@ -94,7 +107,19 @@ export default function LoginPage() {
               type="text" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)} 
-              placeholder="Введите логин" 
+              placeholder="Придумайте логин" 
+              required 
+              minLength={3}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs uppercase tracking-wide mb-1">EMAIL</label>
+            <input 
+              className="w-full px-3 py-2 rounded border" 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="example@mail.ru" 
               required 
             />
           </div>
@@ -105,20 +130,32 @@ export default function LoginPage() {
               type="password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
-              placeholder="••••••••" 
+              placeholder="Минимум 8 символов" 
+              required 
+              minLength={8}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="block text-xs uppercase tracking-wide mb-1">ПОВТОРИТЕ ПАРОЛЬ</label>
+            <input 
+              className="w-full px-3 py-2 rounded border" 
+              type="password" 
+              value={confirmPassword} 
+              onChange={(e) => setConfirmPassword(e.target.value)} 
+              placeholder="Повторите пароль" 
               required 
             />
           </div>
           <button 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 disabled:opacity-50" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 disabled:opacity-50 mb-3" 
             type="submit"
             disabled={loading}
           >
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
           </button>
-          <div className="text-center text-sm mt-3">
-            <span className="text-muted-foreground">Нет аккаунта? </span>
-            <a href="/register" className="text-blue-600 hover:underline">Зарегистрироваться</a>
+          <div className="text-center text-sm">
+            <span className="text-muted-foreground">Уже есть аккаунт? </span>
+            <a href="/login" className="text-blue-600 hover:underline">Войти</a>
           </div>
         </form>
       </section>

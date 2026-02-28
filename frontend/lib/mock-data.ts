@@ -35,15 +35,18 @@ function generateForecastData(
       baseDays + trend * i + (Math.sin(i * 0.7) * noise + rng() * noise * 0.3)
     const milking = 420 + Math.round(Math.sin(i * 0.4) * 30) - Math.round(trend * i * 0.8)
     const dry = 80 + Math.round(Math.cos(i * 0.5) * 15)
-    const ownHeifers = Math.round(50 + Math.sin(i * 0.3) * 15 + rng() * 10)
-    const purchasedHeifers = Math.round(10 + Math.sin(i * 0.5) * 5 + rng() * 5)
+    const totalAdults = milking + dry
+    const milkTotal = Math.round(milking * val * 0.8 / 10)
+    const firstCalvings = Math.round(50 + Math.sin(i * 0.3) * 15 + rng() * 10)
+    const purchased = Math.round(10 + Math.sin(i * 0.5) * 5 + rng() * 5)
     rows.push({
       month: monthStr,
-      avgMilkingDays: Math.round(val * 10) / 10,
-      milkingHeadCount: Math.max(200, milking),
-      dryHeadCount: Math.max(30, dry),
-      ownHeifers: Math.max(20, ownHeifers),
-      purchasedHeifers: Math.max(0, purchasedHeifers),
+      avg_dim: Math.round(val * 10) / 10,
+      cows_count: Math.max(200, milking),
+      total_adults: Math.max(230, totalAdults),
+      milk_total: milkTotal,
+      first_calvings: Math.max(20, firstCalvings),
+      purchased: Math.max(0, purchased),
     })
   }
   return rows

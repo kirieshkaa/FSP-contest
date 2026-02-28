@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import ClickSparkProvider from '@/components/click-spark-provider'
+import { Toaster } from '@/components/ui/toaster'
 import './globals.css'
 
 const _inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
@@ -47,6 +48,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ClickSparkProvider />
           {children}
+          <Toaster />
           <Analytics />
         </ThemeProvider>
       </body>
