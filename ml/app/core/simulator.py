@@ -135,8 +135,8 @@ class HerdSimulator:
             logger.info(f"Загрузка параметров: source={source}, file={params_file}")
         constant_params = {
             'age_first_insem_max': 395,
-            'prob_insem_month': 0.20,
-            'gestation_mean': 282,
+            'prob_insem_month': 0.50,
+            'gestation_mean': 280,
             'dry_period': 220,
             'culling_rate_default': 0.025,
             'death_prob_monthly_by_lact': {}
@@ -339,10 +339,10 @@ class HerdSimulator:
 
                     sim._apply_culling(self.params.get('death_prob_monthly_by_lact', {}),
                                         self.params.get('culling_rate_default', 0.025))
-                    sim._apply_calving(self.params.get('gestation_mean', 282))
+                    sim._apply_calving(self.params.get('gestation_mean', 280))
                     sim._apply_dry_off(self.params.get('dry_period', 220))
                     sim._apply_insemination(self.params.get('age_first_insem_max', 395),
-                                            self.params.get('prob_insem_month', 0.20))
+                                            self.params.get('prob_insem_month', 0.50))
 
                     # Собираем статистику для истории (не обязательно, но для кэша нужно только финальное поголовье)
                     # Для ускорения можно пропустить сбор, но оставим как есть
@@ -447,10 +447,10 @@ class HerdSimulator:
 
                         sim._apply_culling(sim.params.get('death_prob_monthly_by_lact', {}),
                                            sim.params.get('culling_rate_default', 0.025))
-                        first_calvings = sim._apply_calving(sim.params.get('gestation_mean', 282))
+                        first_calvings = sim._apply_calving(sim.params.get('gestation_mean', 280))
                         sim._apply_dry_off(sim.params.get('dry_period', 220))
                         sim._apply_insemination(sim.params.get('age_first_insem_max', 395),
-                                                sim.params.get('prob_insem_month', 0.20))
+                                                sim.params.get('prob_insem_month', 0.50))
 
                         # Статистика за месяц
                         lactating_count = np.sum(sim.status == STATUS_CODES['lactating'])
@@ -499,10 +499,10 @@ class HerdSimulator:
 
                             sim._apply_culling(sim.params.get('death_prob_monthly_by_lact', {}),
                                                sim.params.get('culling_rate_default', 0.025))
-                            first_calvings = sim._apply_calving(sim.params.get('gestation_mean', 282))
+                            first_calvings = sim._apply_calving(sim.params.get('gestation_mean', 280))
                             sim._apply_dry_off(sim.params.get('dry_period', 220))
                             sim._apply_insemination(sim.params.get('age_first_insem_max', 395),
-                                                    sim.params.get('prob_insem_month', 0.20))
+                                                    sim.params.get('prob_insem_month', 0.50))
 
                             lactating_count = np.sum(sim.status == STATUS_CODES['lactating'])
                             adults = np.sum(sim.status != STATUS_CODES['calf_female'])
@@ -559,8 +559,8 @@ class HerdSimulator:
             logger.info("Обычная симуляция с фиксированной закупкой")
 
         age_insem = self.params.get('age_first_insem_max', 395)
-        prob_insem = self.params.get('prob_insem_month', 0.20)
-        gestation = self.params.get('gestation_mean', 282)
+        prob_insem = self.params.get('prob_insem_month', 0.50)
+        gestation = self.params.get('gestation_mean', 280)
         dry_period = self.params.get('dry_period', 220)
         death_prob_by_lact = self.params.get('death_prob_monthly_by_lact', {})
         default_culling = self.params.get('culling_rate_default', 0.025)
