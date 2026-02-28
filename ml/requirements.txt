@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pandas
+numpy
+python-dateutil
+python-multipart
+requests
+matplotlib
