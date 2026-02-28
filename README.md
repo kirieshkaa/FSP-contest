@@ -1,8 +1,6 @@
-# FSP Hackaton project
-
-
-
-
-
-## Description
-Our repository for hackaton
+сделал страничку для авторизации добавил переключатель темы
+для запуска скачать node.js
+открыть коммандную строку в директории 
+прописать 
+npm install 
+npm run dev
