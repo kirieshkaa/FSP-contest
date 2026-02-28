@@ -17,10 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
 
-type ExportFormat = 'csv' | 'xlsx' | 'json' | 'pdf'
+type ExportFormat = 'csv' | 'xlsx' | 'json'
 
 function exportToCSV(data: ForecastRow[], filename: string) {
   const headers = ['Месяц', 'Средние дни доения', 'Дойные, гол', 'Сухостойные, гол', 'Собственные первотёлки, гол', 'Купленные нетели, гол']
@@ -73,47 +71,6 @@ function exportToJSON(data: ForecastRow[], filename: string) {
   link.click()
 }
 
-async function exportToPDF(elementId: string, filename: string) {
-  const element = document.getElementById(elementId)
-  if (!element) {
-    alert('Элемент не найден')
-    return
-  }
-
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  try {
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight
-    })
-    
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF({
-      orientation: canvas.width > canvas.height ? 'l' : 'p',
-      unit: 'mm',
-      format: 'a4'
-    })
-    
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const imgWidth = pdfWidth - 20
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
-    
-    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
-    pdf.save(`${filename}.pdf`)
-    
-    alert('PDF успешно создан!')
-  } catch (e) {
-    console.error('Ошибка экспорта PDF:', e)
-    alert('Ошибка при создании PDF: ' + (e as Error).message)
-  }
-}
-
 function handleExport(format: ExportFormat, data: ForecastRow[], scenarioName: string) {
   const filename = `forecast_${scenarioName}_${new Date().toISOString().split('T')[0]}`
   switch (format) {
@@ -125,9 +82,6 @@ function handleExport(format: ExportFormat, data: ForecastRow[], scenarioName: s
       break
     case 'json':
       exportToJSON(data, filename)
-      break
-    case 'pdf':
-      exportToPDF('forecast-content', filename)
       break
   }
 }
@@ -142,8 +96,8 @@ function ThemeToggle({ className = '' }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <Button size="sm" variant="ghost" className={`text-xs ${className}`}>
-        <Moon className="size-4" />
+      <Button size="sm" variant="ghost" className={`text-xs transition-all duration-300 hover:bg-accent hover:scale-105 active:scale-95 ${className}`}>
+        <Moon className="size-4 animate-pulse" />
       </Button>
     );
   }
@@ -155,10 +109,17 @@ function ThemeToggle({ className = '' }: { className?: string }) {
       size="sm" 
       variant="ghost" 
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`text-xs ${className}`}
+      className={`text-xs transition-all duration-300 hover:bg-accent hover:scale-105 active:scale-95 ${className}`}
       aria-label="Переключить тему"
     >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      <div className="relative w-4 h-4">
+        <span className={`absolute inset-0 transition-all duration-300 ${isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`}>
+          <Moon className="size-4" />
+        </span>
+        <span className={`absolute inset-0 transition-all duration-300 ${isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`}>
+          <Sun className="size-4" />
+        </span>
+      </div>
     </Button>
   );
 }
@@ -205,6 +166,16 @@ export default function DashboardPage() {
           heifersPurchasePerMonth: 0,
           ownHeifersPercent: 15,
           forecastDate: '26.02.2029',
+          ageFirstInsem: 395,
+          probInsem: 0.2,
+          gestation: 282,
+          dryPeriod: 220,
+          cullingRate: 0.025,
+          maintainReplacement: false,
+          growthTarget: null,
+          purchaseMode: 'fixed',
+          purchaseCurve: [1,1,1,1,1,1,1,1,1,1,1,1],
+          purchaseAdjustment: null,
         },
       files: [],
       activeFileId: null,
@@ -325,9 +296,6 @@ export default function DashboardPage() {
                 <DropdownMenuItem onClick={() => handleExport('json', scenarioData.slice(0, periodMonths), activeScenario?.name || 'scenario')}>
                   JSON (.json)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf', scenarioData.slice(0, periodMonths), activeScenario?.name || 'scenario')}>
-                  PDF с графиками
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <ThemeToggle className="ml-2" />
@@ -364,6 +332,8 @@ export default function DashboardPage() {
               )}
 
               <CompactStats data={scenarioData} />
+
+              
 
               <ForecastChart
                 scenarioData={scenarioData}

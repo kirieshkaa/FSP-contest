@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { mockUsers } from '@/lib/mock-data'
 import type { User } from '@/lib/types'
@@ -23,7 +24,43 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Pencil, Trash2, ArrowLeft, Users } from 'lucide-react'
+import { Plus, Pencil, Trash2, ArrowLeft, Users, Moon, Sun } from 'lucide-react'
+
+function ThemeToggle({ className = '' }: { className?: string }) {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button className={`fixed top-5 right-5 z-50 w-11 h-11 rounded-full border border-white/30 bg-white/10 backdrop-blur text-white flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-110 active:scale-95 ${className}`} aria-label="Переключить тему">
+        <Moon className="w-5 h-5 animate-pulse" />
+      </button>
+    );
+  }
+
+  const isDark = resolvedTheme === 'dark';
+
+  return (
+    <button
+      className={`fixed top-5 right-5 z-50 w-11 h-11 rounded-full border border-white/30 bg-white/10 backdrop-blur text-white flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-110 active:scale-95 ${className}`}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      aria-label="Переключить тему"
+    >
+      <div className="relative w-5 h-5">
+        <span className={`absolute inset-0 transition-all duration-500 ${isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`}>
+          <Moon className="w-5 h-5" />
+        </span>
+        <span className={`absolute inset-0 transition-all duration-500 ${isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`}>
+          <Sun className="w-5 h-5" />
+        </span>
+      </div>
+    </button>
+  );
+}
 
 export default function AdminPage() {
   const router = useRouter()
@@ -97,7 +134,8 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 p-6 relative">
+        <ThemeToggle />
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-center">Доступ запрещен</CardTitle>
@@ -114,11 +152,12 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
+    <div className="min-h-screen bg-gradient-to-r from-indigo-500 to-purple-600">
+      <ThemeToggle />
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="size-5" />
               </Button>
@@ -134,7 +173,7 @@ export default function AdminPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <Card>
+        <Card className="bg-white/95 dark:bg-slate-800/90">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

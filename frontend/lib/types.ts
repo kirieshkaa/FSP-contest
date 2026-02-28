@@ -21,6 +21,16 @@ export interface ScenarioParams {
   heifersPurchasePerMonth: number
   ownHeifersPercent: number
   forecastDate: string
+  ageFirstInsem: number
+  probInsem: number
+  gestation: number
+  dryPeriod: number
+  cullingRate: number
+  maintainReplacement: boolean
+  growthTarget: number | null
+  purchaseMode: 'fixed' | 'curve'
+  purchaseCurve: number[]
+  purchaseAdjustment: number | null
 }
 
 export interface ForecastRow {
