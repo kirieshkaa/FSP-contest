@@ -1,8 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+import { api, setAccessToken, clearAccessToken, getAccessToken } from './axios';
 
-export function getBaseUrl(): string {
-  return API_BASE_URL.replace("/api/v1", "").replace("/api", "")
-}
+export { getBaseUrl } from './axios';
 
 export interface RegisterRequest {
   username: string;
@@ -74,201 +72,6 @@ export interface CreateQueryParams {
   culling_rate?: number;
 }
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-
-function subscribeTokenRefresh(callback: (token: string) => void) {
-  refreshSubscribers.push(callback);
-}
-
-function onTokenRefreshed(token: string) {
-  refreshSubscribers.forEach(cb => cb(token));
-  refreshSubscribers = [];
-}
-
-async function refreshAccessToken(): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    clearAccessToken();
-    window.location.href = '/login';
-    throw new Error('Session expired');
-  }
-
-  const data = await response.json();
-  setAccessToken(data.access_token);
-  return data.access_token;
-}
-
-async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
-  let token = getAccessToken();
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    },
-    credentials: 'include',
-  });
-
-  if (response.status === 401 && !isRefreshing) {
-    isRefreshing = true;
-    
-    try {
-      const newToken = await refreshAccessToken();
-      isRefreshing = false;
-      onTokenRefreshed(newToken);
-      
-      return fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${newToken}`,
-        },
-        credentials: 'include',
-      });
-    } catch {
-      isRefreshing = false;
-      throw response;
-    }
-  }
-
-  return response;
-}
-
-async function fetchWithAuthFormData(url: string, options: RequestInit = {}): Promise<Response> {
-  let token = getAccessToken();
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    },
-    credentials: 'include',
-  });
-
-  if (response.status === 401 && !isRefreshing) {
-    isRefreshing = true;
-    
-    try {
-      const newToken = await refreshAccessToken();
-      isRefreshing = false;
-      onTokenRefreshed(newToken);
-      
-      return fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          'Authorization': `Bearer ${newToken}`,
-        },
-        credentials: 'include',
-      });
-    } catch {
-      isRefreshing = false;
-      throw response;
-    }
-  }
-
-  return response;
-}
-
-function getAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
-}
-
-function setAccessToken(token: string): void {
-  localStorage.setItem('access_token', token);
-}
-
-function clearAccessToken(): void {
-  localStorage.removeItem('access_token');
-}
-
-function getAuthHeaders(): HeadersInit {
-  const token = getAccessToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-}
-
-export async function login(username: string, password: string): Promise<{ access_token: string; role: string }> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ username, password }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Login failed' }));
-    throw new Error(error.detail || 'Login failed');
-  }
-
-  const data = await response.json();
-  setAccessToken(data.access_token);
-  localStorage.setItem('user_role', data.role);
-  localStorage.setItem('user_id', data.user_id);
-  return data;
-}
-
-export async function register(data: RegisterRequest): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Registration failed' }));
-    throw new Error(error.detail || 'Registration failed');
-  }
-}
-
-export async function logout(): Promise<void> {
-  clearAccessToken();
-  await fetch(`${API_BASE_URL}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  }).catch(() => {});
-}
-
-export async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/auth/change-password`, {
-    method: 'POST',
-    credentials: 'include',
-    body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Password change failed' }));
-    throw new Error(error.detail || 'Password change failed');
-  }
-}
-
-export async function getUserProfile(): Promise<UserProfile> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/auth/me`);
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch profile' }));
-    throw new Error(error.detail || 'Failed to fetch profile');
-  }
-
-  return response.json();
-}
-
 export interface UserProfile {
   id: string;
   username: string;
@@ -278,37 +81,80 @@ export interface UserProfile {
   created_at: string;
 }
 
-export async function updateEmail(email: string, password: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/auth/email`, {
-    method: 'PATCH',
-    credentials: 'include',
-    body: JSON.stringify({ email, password }),
-  });
+export async function login(username: string, password: string): Promise<{ access_token: string; role: string }> {
+  try {
+    const response = await api.post('/auth/login', { username, password });
+    const data = response.data;
+    setAccessToken(data.access_token);
+    localStorage.setItem('user_role', data.role);
+    localStorage.setItem('user_id', data.user_id);
+    return data;
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Login failed');
+  }
+}
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Email update failed' }));
-    throw new Error(error.detail || 'Email update failed');
+export async function register(data: RegisterRequest): Promise<void> {
+  try {
+    await api.post('/auth/register', data);
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Registration failed');
+  }
+}
+
+export async function logout(): Promise<void> {
+  clearAccessToken();
+  try {
+    await api.post('/auth/logout');
+  } catch {}
+}
+
+export async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
+  try {
+    await api.post('/auth/change-password', { old_password: oldPassword, new_password: newPassword });
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Password change failed');
+  }
+}
+
+export async function getUserProfile(): Promise<UserProfile> {
+  try {
+    const response = await api.get('/auth/me');
+    return response.data;
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Failed to fetch profile');
+  }
+}
+
+export async function updateEmail(email: string, password: string): Promise<void> {
+  try {
+    await api.patch('/auth/email', { email, password });
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Email update failed');
   }
 }
 
 export async function getQueries(page = 1, limit = 10): Promise<QueryListResponse> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/queries?page=${page}&limit=${limit}`);
-
-  if (!response.ok) {
+  try {
+    const response = await api.get('/queries', { params: { page, limit } });
+    return response.data;
+  } catch {
     throw new Error('Failed to fetch queries');
   }
-
-  return response.json();
 }
 
 export async function getQuery(queryId: string): Promise<QueryResponse> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/queries/${queryId}`);
-
-  if (!response.ok) {
+  try {
+    const response = await api.get(`/queries/${queryId}`);
+    return response.data;
+  } catch {
     throw new Error('Failed to fetch query');
   }
-
-  return response.json();
 }
 
 export async function createQuery(
@@ -334,25 +180,21 @@ export async function createQuery(
     if (params.culling_rate) formData.append('culling_rate', String(params.culling_rate));
   }
 
-  const response = await fetchWithAuthFormData(`${API_BASE_URL}/queries`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to create query' }));
-    throw new Error(error.detail || 'Failed to create query');
+  try {
+    const response = await api.post('/queries', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Failed to create query');
   }
-
-  return response.json();
 }
 
 export async function deleteQuery(queryId: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/queries/${queryId}`, {
-    method: 'DELETE',
-  });
-
-  if (!response.ok) {
+  try {
+    await api.delete(`/queries/${queryId}`);
+  } catch {
     throw new Error('Failed to delete query');
   }
 }
@@ -362,57 +204,45 @@ export async function getUsers(
   limit = 10,
   statusFilter?: string
 ): Promise<UserListResponse> {
-  let url = `${API_BASE_URL}/admin/users?page=${page}&limit=${limit}`;
-  if (statusFilter) url += `&status_filter=${statusFilter}`;
-
-  const response = await fetchWithAuth(url);
-
-  if (!response.ok) {
+  try {
+    const response = await api.get('/admin/users', { params: { page, limit, status_filter: statusFilter } });
+    return response.data;
+  } catch {
     throw new Error('Failed to fetch users');
   }
-
-  return response.json();
 }
 
 export async function approveUser(userId: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/${userId}/approve`, {
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to approve user' }));
-    throw new Error(error.detail || 'Failed to approve user');
+  try {
+    await api.post(`/admin/users/${userId}/approve`);
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Failed to approve user');
   }
 }
 
 export async function rejectUser(userId: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/${userId}/reject`, {
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to reject user' }));
-    throw new Error(error.detail || 'Failed to reject user');
+  try {
+    await api.post(`/admin/users/${userId}/reject`);
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Failed to reject user');
   }
 }
 
 export async function blockUser(userId: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/${userId}/block`, {
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to block user' }));
-    throw new Error(error.detail || 'Failed to block user');
+  try {
+    await api.post(`/admin/users/${userId}/block`);
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Failed to block user');
   }
 }
 
 export async function deleteUser(userId: string): Promise<void> {
-  const response = await fetchWithAuth(`${API_BASE_URL}/admin/users/${userId}`, {
-    method: 'DELETE',
-  });
-
-  if (!response.ok) {
+  try {
+    await api.delete(`/admin/users/${userId}`);
+  } catch {
     throw new Error('Failed to delete user');
   }
 }
