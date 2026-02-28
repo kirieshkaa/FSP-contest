@@ -79,7 +79,7 @@ app.add_middleware(
         "/api/v1/auth/login": (5, 60),
         "/api/v1/auth/refresh": (5, 60),
         "/api/v1/reset-password": (3, 300),
-        "/api/v1/queries": (10, 60),
+        "/api/v1/queries": (60, 60),
     },
 )
 
