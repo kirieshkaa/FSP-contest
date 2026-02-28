@@ -34,19 +34,25 @@ type ChartSeries = {
   key: string
   name: string
   color: string
+  axis?: AxisSide
 }
 
 const herdSeries: ChartSeries[] = [
   { id: "milkingDays", key: "avgMilkingDays", name: "Средние дни доения", color: "#3b82f6" },
   { id: "milkingHerd", key: "milkingHeadCount", name: "Дойное стадо", color: "#10b981" },
   { id: "allAdults", key: "allAdults", name: "Все взрослые", color: "#f59e0b" },
-  { id: "milk", key: "milk", name: "Молоко", color: "#ef4444" },
 ]
 
 const heifersSeries: ChartSeries[] = [
-  { id: "ownHeifers", key: "ownHeifers", name: "Собственные первотёлки", color: "#3b82f6" },
-  { id: "purchasedHeifers", key: "purchasedHeifers", name: "Купленные нетели", color: "#10b981" },
+  { id: "ownHeifers", key: "ownHeifers", name: "Собственные первотёлки", color: "#3b82f6", axis: "left" },
+  { id: "purchasedHeifers", key: "purchasedHeifers", name: "Купленные нетели", color: "#10b981", axis: "right" },
 ]
+
+type AxisSide = "left" | "right"
+
+interface ChartSeriesWithAxis extends ChartSeries {
+  axis: AxisSide
+}
 
 export function ForecastChart({
   scenarioData,
@@ -60,7 +66,6 @@ export function ForecastChart({
     avgMilkingDays: true,
     milkingHeadCount: true,
     allAdults: true,
-    milk: false,
   })
   
   const [visibleHeifers, setVisibleHeifers] = useState<Record<string, boolean>>({
@@ -75,7 +80,6 @@ export function ForecastChart({
     avgMilkingDays: row.avgMilkingDays,
     milkingHeadCount: row.milkingHeadCount,
     allAdults: row.milkingHeadCount + row.dryHeadCount,
-    milk: Math.round(row.milkingHeadCount * row.avgMilkingDays * 0.8),
     ownHeifers: row.ownHeifers,
     purchasedHeifers: row.purchasedHeifers,
   }))
@@ -88,11 +92,11 @@ export function ForecastChart({
     }
   }
 
-  const getVisibleSeries = (set: ChartSet) => {
+  const getVisibleSeries = (set: ChartSet): ChartSeriesWithAxis[] => {
     if (set === "herd") {
-      return herdSeries.filter((s) => visibleHerd[s.key])
+      return herdSeries.filter((s) => visibleHerd[s.key]) as ChartSeriesWithAxis[]
     }
-    return heifersSeries.filter((s) => visibleHeifers[s.key])
+    return heifersSeries.filter((s) => visibleHeifers[s.key]) as ChartSeriesWithAxis[]
   }
 
   const chartTypes: { type: ChartType; icon: React.ReactNode; label: string }[] = [
@@ -101,9 +105,10 @@ export function ForecastChart({
     { type: "area", icon: <TrendingUp className="size-4" />, label: "Область" },
   ]
 
-  const visibleSeriesList = getVisibleSeries(chartSet)
+  const visibleHerdSeries = getVisibleSeries("herd")
+  const visibleHeifersSeries = getVisibleSeries("heifers")
 
-  const renderSeries = (s: ChartSeries) => {
+  const renderSeries = (s: ChartSeriesWithAxis) => {
     if (chartType === "bar") {
       return (
         <Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} radius={[2, 2, 0, 0]} />
@@ -135,7 +140,7 @@ export function ForecastChart({
     )
   }
 
-  const renderLegend = () => {
+  const renderLegend = (chartSet: ChartSet) => {
     const series = chartSet === "herd" ? herdSeries : heifersSeries
     const visible = chartSet === "herd" ? visibleHerd : visibleHeifers
     return (
@@ -163,6 +168,71 @@ export function ForecastChart({
       </div>
     )
   }
+
+  const renderChartSection = (title: string, visibleSeriesList: ChartSeriesWithAxis[], chartSet: ChartSet) => (
+    <div className="flex flex-col">
+      <div className="text-sm font-medium text-center py-2">{title}</div>
+      <ResponsiveContainer width="100%" height={280}>
+        {chartType === "bar" ? (
+          <BarChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              className="fill-muted-foreground"
+              interval={periodMonths <= 12 ? 0 : "equidistantPreserveStart"}
+              angle={periodMonths > 12 ? -45 : 0}
+              textAnchor={periodMonths > 12 ? "end" : "middle"}
+              height={periodMonths > 12 ? 60 : 30}
+            />
+            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} className="fill-muted-foreground" domain={["auto", "auto"]} width={40} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--border)" }} />
+            {visibleSeriesList.map(renderSeries)}
+          </BarChart>
+        ) : chartType === "area" ? (
+          <AreaChart data={chartData} margin={{ top: 8, right: 60, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              className="fill-muted-foreground"
+              interval={periodMonths <= 12 ? 0 : "equidistantPreserveStart"}
+              angle={periodMonths > 12 ? -45 : 0}
+              textAnchor={periodMonths > 12 ? "end" : "middle"}
+              height={periodMonths > 12 ? 60 : 30}
+            />
+            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} className="fill-muted-foreground" domain={["auto", "auto"]} width={40} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--border)" }} />
+            {visibleSeriesList.map(renderSeries)}
+          </AreaChart>
+        ) : (
+          <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              className="fill-muted-foreground"
+              interval={periodMonths <= 12 ? 0 : "equidistantPreserveStart"}
+              angle={periodMonths > 12 ? -45 : 0}
+              textAnchor={periodMonths > 12 ? "end" : "middle"}
+              height={periodMonths > 12 ? 60 : 30}
+            />
+            <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} className="fill-muted-foreground" domain={["auto", "auto"]} width={40} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--border)" }} />
+            {visibleSeriesList.map(renderSeries)}
+          </LineChart>
+        )}
+      </ResponsiveContainer>
+    </div>
+  )
+
+  const visibleSeriesList = chartSet === "herd" ? visibleHerdSeries : visibleHeifersSeries
 
   return (
     <Card>
@@ -204,90 +274,10 @@ export function ForecastChart({
             </div>
           </div>
         </div>
-        {renderLegend()}
+        {renderLegend(chartSet)}
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={380}>
-          {chartType === "bar" ? (
-            <BarChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                className="fill-muted-foreground"
-                interval={periodMonths <= 12 ? 0 : "equidistantPreserveStart"}
-                angle={periodMonths > 12 ? -45 : 0}
-                textAnchor={periodMonths > 12 ? "end" : "middle"}
-                height={periodMonths > 12 ? 60 : 30}
-              />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                className="fill-muted-foreground"
-                domain={["auto", "auto"]}
-                width={40}
-              />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--border)" }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              {visibleSeriesList.map(renderSeries)}
-            </BarChart>
-          ) : chartType === "area" ? (
-            <AreaChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                className="fill-muted-foreground"
-                interval={periodMonths <= 12 ? 0 : "equidistantPreserveStart"}
-                angle={periodMonths > 12 ? -45 : 0}
-                textAnchor={periodMonths > 12 ? "end" : "middle"}
-                height={periodMonths > 12 ? 60 : 30}
-              />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                className="fill-muted-foreground"
-                domain={["auto", "auto"]}
-                width={40}
-              />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--border)" }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              {visibleSeriesList.map(renderSeries)}
-            </AreaChart>
-          ) : (
-            <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                className="fill-muted-foreground"
-                interval={periodMonths <= 12 ? 0 : "equidistantPreserveStart"}
-                angle={periodMonths > 12 ? -45 : 0}
-                textAnchor={periodMonths > 12 ? "end" : "middle"}
-                height={periodMonths > 12 ? 60 : 30}
-              />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                className="fill-muted-foreground"
-                domain={["auto", "auto"]}
-                width={40}
-              />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--border)" }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              {visibleSeriesList.map(renderSeries)}
-            </LineChart>
-          )}
-        </ResponsiveContainer>
+        {renderChartSection(chartSet === "herd" ? "Стадо" : "Первотёлки", visibleSeriesList, chartSet)}
       </CardContent>
     </Card>
   )
