@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import type { ScenarioParams } from "@/lib/types"
 import { useState, useCallback, useEffect } from "react"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Save, FolderOpen, Plus, Trash2 } from "lucide-react"
 import { createPortal } from "react-dom"
 
 interface SliderInputProps {
@@ -151,6 +151,40 @@ function PurchaseCurveEditor({ value, onChange }: PurchaseCurveEditorProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
   const [windowSize, setWindowSize] = useState({ width: 800, height: 600 })
+  const [presets, setPresets] = useState<{name: string, curve: number[]}[]>([])
+  const [presetName, setPresetName] = useState("")
+  const [showPresets, setShowPresets] = useState(false)
+  const [selectedPresetIndex, setSelectedPresetIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem("purchaseCurvePresets")
+    if (saved) {
+      setPresets(JSON.parse(saved))
+    }
+  }, [])
+
+  const savePreset = () => {
+    if (!presetName.trim()) return
+    const newPresets = [...presets, { name: presetName, curve: [...value] }]
+    setPresets(newPresets)
+    localStorage.setItem("purchaseCurvePresets", JSON.stringify(newPresets))
+    setPresetName("")
+  }
+
+  const loadPreset = (curve: number[], index: number) => {
+    onChange(curve)
+    setSelectedPresetIndex(index)
+  }
+
+  const deletePreset = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const newPresets = presets.filter((_, i) => i !== index)
+    setPresets(newPresets)
+    localStorage.setItem("purchaseCurvePresets", JSON.stringify(newPresets))
+    if (selectedPresetIndex === index) {
+      setSelectedPresetIndex(null)
+    }
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -313,25 +347,68 @@ function PurchaseCurveEditor({ value, onChange }: PurchaseCurveEditorProps) {
       <div className="flex items-center gap-2">
         {renderChart(points, width, height, padding, chartHeight, false)}
         <Button
-          variant="ghost"
-          size="sm"
+          variant="outline"
+          size="icon"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="h-6 px-2"
+          className="h-8 w-8 shrink-0"
         >
-          {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {isExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
         </Button>
       </div>
       {isExpanded && typeof document !== 'undefined' && createPortal(
-        <div className="fixed left-[320px] top-0 right-0 bottom-0 z-[60] p-6 overflow-auto flex items-center justify-center">
-          <div className="relative">
+        <div className="fixed left-[320px] top-0 right-0 bottom-0 z-[60] p-6 overflow-auto flex items-center justify-center bg-background/30 backdrop-blur-md">
+          <div className="relative flex flex-col gap-4">
             <Button
-              variant="ghost"
+              variant="default"
               size="sm"
               onClick={() => setIsExpanded(false)}
-              className="absolute -top-3 -right-3 h-8 w-8 p-0 bg-background/80 border border-border rounded-full z-10 hover:bg-accent backdrop-blur-sm"
+              className="absolute -top-3 -right-3 h-8 w-8 p-0 bg-foreground text-background border-2 border-background rounded-full z-10 hover:bg-foreground/90 shadow-lg"
             >
               <X className="h-4 w-4" />
             </Button>
+            
+            <div className="flex items-center gap-2 bg-background rounded-lg border border-border p-2 shadow-sm">
+              <Input
+                type="text"
+                placeholder="Название пресета"
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                className="h-8 w-40 text-sm"
+              />
+              <Button variant="outline" size="sm" onClick={savePreset} className="h-8 gap-1">
+                <Save className="h-4 w-4" />
+                Сохранить
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowPresets(!showPresets)} className="h-8 gap-1">
+                <FolderOpen className="h-4 w-4" />
+                Загрузить
+              </Button>
+            </div>
+
+            {presets.length > 0 && (
+              <div className="bg-background rounded-lg border border-border p-2 shadow-sm max-h-40 overflow-auto">
+                {presets.map((preset, index) => (
+                  <div 
+                    key={index} 
+                    onClick={() => loadPreset(preset.curve, index)}
+                    className={`flex items-center justify-between gap-2 p-1 rounded cursor-pointer ${selectedPresetIndex === index ? 'bg-primary/20 border border-primary' : 'hover:bg-accent'}`}
+                  >
+                    <span className={`flex-1 text-left text-sm px-2 py-1 ${selectedPresetIndex === index ? 'font-medium' : ''}`}>
+                      {preset.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => deletePreset(index, e)}
+                      className="h-6 w-6 text-red-500 hover:text-red-700 shrink-0"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {renderChart(expandedPoints, expandedWidth, expandedHeight, expandedPadding, expandedChartHeight, true)}
           </div>
         </div>,
