@@ -7,10 +7,6 @@
 ### Установка с использованием uv
 
 ```bash
-# Клонировать репозиторий
-git clone <url>
-cd cattle_simulator
-
 # Создать виртуальное окружение и установить зависимости
 uv venv
 uv pip install -r requirements.txt
