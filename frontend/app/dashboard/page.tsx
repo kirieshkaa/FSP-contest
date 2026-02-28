@@ -168,7 +168,7 @@ export default function DashboardPage() {
           forecastDate: '26.02.2029',
           ageFirstInsem: 395,
           probInsem: 0.5,
-          gestation: 282,
+          gestation: 280,
           dryPeriod: 220,
           cullingRate: 0.025,
           maintainReplacement: false,
