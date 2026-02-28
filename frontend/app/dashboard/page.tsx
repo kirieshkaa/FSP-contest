@@ -7,8 +7,9 @@ import { ForecastTable } from '@/components/forecast-table'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
-import { BarChart3, Upload, Menu, X, Sun, Moon, Download, FileText, Trash2, Plus, Send, Shield, User, LogOut } from 'lucide-react'
+import { BarChart3, Upload, Menu, X, Sun, Moon, Download, FileText, Trash2, Plus, Send, Shield, User, LogOut, Settings2 } from 'lucide-react'
 import type { ForecastRow } from '@/lib/types'
 import { useTheme } from 'next-themes'
 import {
@@ -17,7 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { createQuery, getQuery, getQueries, deleteQuery, logout, isAuthenticated, getBaseUrl } from '@/lib/api'
+import { createQuery, getQuery, getQueries, deleteQuery, logout, isAuthenticated, getBaseUrl, CreateQueryParams } from '@/lib/api'
+import { QueryParamsPanel, defaultParams } from '@/components/query-params-panel'
 
 type ExportFormat = 'csv' | 'xlsx' | 'json'
 
@@ -139,6 +141,7 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [initialLoaded, setInitialLoaded] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [queryParams, setQueryParams] = useState<CreateQueryParams>(defaultParams)
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -176,7 +179,7 @@ export default function DashboardPage() {
           })
         )
         setSessions(loadedSessions.reverse())
-        setActiveSessionId(loadedSessions[loadedSessions.length - 1]?.id || null)
+        createNewSession()
       }
     } catch (err) {
       console.error('Failed to load queries:', err)
@@ -231,10 +234,7 @@ export default function DashboardPage() {
       const response = await createQuery(
         activeSession.file,
         activeSession.title,
-        {
-          months: period,
-          params_source: 'empirical',
-        }
+        queryParams
       )
       
       const queryResult = await getQuery(response.query_id)
@@ -397,7 +397,14 @@ export default function DashboardPage() {
             {activeSession?.forecastData.length > 0 && (
               <>
                 <span className="text-sm">Период: {period} мес</span>
-                <input type="range" min={1} max={36} value={period} onChange={(e)=>setPeriod(parseInt(e.target.value))} className="w-32" />
+                <Slider
+                  value={[period]}
+                  onValueChange={([v]) => setPeriod(v)}
+                  min={1}
+                  max={activeSession?.forecastData?.length || 1}
+                  className="w-32"
+                />
+                <span className="text-xs text-muted-foreground">/ {activeSession?.forecastData?.length || 0} мес</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs cursor-pointer">
@@ -502,6 +509,17 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
+                <QueryParamsPanel
+                  params={queryParams}
+                  onChange={setQueryParams}
+                  trigger={
+                    <Button variant="outline" className="w-full gap-2" disabled={!activeSession.file || loading}>
+                      <Settings2 className="size-4" />
+                      Параметры
+                    </Button>
+                  }
+                />
+                
                 <Button 
                   className="w-full gap-2" 
                   onClick={handleCalculate}
