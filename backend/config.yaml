@@ -55,3 +55,10 @@ security:
 logging:
   level: "INFO"
   format: "json"
+
+upload:
+  directory: "uploads"
+  max_file_size_mb: 10
+  allowed_extensions:
+    - ".txt"
+    - ".csv"

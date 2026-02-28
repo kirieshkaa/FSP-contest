@@ -37,3 +37,28 @@ class PasswordResetToken:
 
     def is_expired(self) -> bool:
         return self.expires_at.replace(tzinfo=None) < datetime.utcnow()
+
+
+@dataclass
+class Query:
+    id: UUID
+    user_id: UUID
+    query_title: Optional[str]
+    file_path: str
+    created_at: datetime
+
+
+@dataclass
+class QueryResponse:
+    id: UUID
+    query_id: UUID
+    response_json: list[dict]
+    created_at: datetime
+
+
+@dataclass
+class PaginatedQueries:
+    items: list[Query]
+    total: int
+    page: int
+    limit: int

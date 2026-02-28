@@ -89,6 +89,12 @@ class LoggingConfig(BaseModel):
     format: str = "json"
 
 
+class UploadConfig(BaseModel):
+    directory: str = "uploads"
+    max_file_size_mb: int = 10
+    allowed_extensions: list[str] = [".txt", ".csv"]
+
+
 class AppConfig(BaseModel):
     server: ServerConfig
     database: DatabaseConfig
@@ -98,6 +104,7 @@ class AppConfig(BaseModel):
     email: EmailConfig
     security: SecurityConfig
     logging: LoggingConfig
+    upload: UploadConfig
 
 
 ENV_VAR_MAPPING = {
@@ -215,4 +222,5 @@ def get_config() -> AppConfig:
         email=EmailConfig(**merged_data.get("email", {})),
         security=SecurityConfig(**merged_data.get("security", {})),
         logging=LoggingConfig(**merged_data.get("logging", {})),
+        upload=UploadConfig(**merged_data.get("upload", {})),
     )

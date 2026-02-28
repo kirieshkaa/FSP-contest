@@ -9,9 +9,11 @@ from app.infrastructure.database.repositories import (
     RefreshTokenRepository,
     AccessTokenRepository,
     PasswordResetRepository,
+    QueryRepository,
+    QueryResponseRepository,
 )
 from app.infrastructure.email import SMTPSender
-from app.application import AuthService, PasswordResetService
+from app.application import AuthService, PasswordResetService, QueryService
 from app.shared import jwt_service, InvalidTokenError, TokenRevokedError
 
 
@@ -55,6 +57,21 @@ async def get_password_reset_service(
     email_sender=Depends(get_email_sender),
 ):
     return PasswordResetService(password_reset_repo, user_repo, email_sender)
+
+
+async def get_query_repo(session=Depends(get_db)):
+    return QueryRepository(session)
+
+
+async def get_query_response_repo(session=Depends(get_db)):
+    return QueryResponseRepository(session)
+
+
+async def get_query_service(
+    query_repo=Depends(get_query_repo),
+    query_response_repo=Depends(get_query_response_repo),
+):
+    return QueryService(query_repo, query_response_repo)
 
 
 async def get_current_user_id(

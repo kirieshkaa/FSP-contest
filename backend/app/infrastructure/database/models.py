@@ -1,8 +1,9 @@
 from datetime import datetime
 from uuid import uuid4
+from typing import Optional
 
-from sqlalchemy import String, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String, DateTime, func, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.postgres import Base
@@ -55,4 +56,31 @@ class PasswordResetTokenModel(Base):
         UUID(as_uuid=True), unique=True, nullable=False
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class QueryModel(Base):
+    __tablename__ = "queries"
+    __table_args__ = {"schema": "query_service"}
+
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid4, name="query_id"
+    )
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=True), nullable=False)
+    query_title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    file_path: Mapped[str] = mapped_column(String(512), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class QueryResponseModel(Base):
+    __tablename__ = "query_responses"
+    __table_args__ = {"schema": "query_service"}
+
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid4, name="response_id"
+    )
+    query_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=True), unique=True, nullable=False
+    )
+    response_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

@@ -64,7 +64,7 @@ class AuthService:
 
         created_user = await self._user_repo.create(user)
 
-        return await self._create_tokens(created_user.id)
+        return await self._create_tokens(created_user.id, created_user.username)
 
     async def login(
         self, username: Optional[str], email: Optional[str], password: str
@@ -85,7 +85,7 @@ class AuthService:
         if not verify_password(password, user.password_hash):
             raise InvalidCredentialsError()
 
-        return await self._create_tokens(user.id)
+        return await self._create_tokens(user.id, user.username)
 
     async def refresh(self, refresh_token: str) -> Tokens:
         payload = jwt_service.verify_refresh_token(refresh_token)
@@ -93,23 +93,28 @@ class AuthService:
             raise InvalidTokenError()
 
         user_id_str = payload.get("user_id")
+        username = payload.get("username")
         user_id = UUID(user_id_str)
 
         stored_token = await self._refresh_token_repo.get_and_delete(refresh_token)
         if not stored_token:
             raise InvalidTokenError()
 
-        return await self._create_tokens(user_id)
+        return await self._create_tokens(user_id, username)
 
     async def logout(self, refresh_token: str) -> None:
         payload = jwt_service.verify_refresh_token(refresh_token)
         if payload:
             await self._refresh_token_repo.delete(refresh_token)
 
-    async def _create_tokens(self, user_id: UUID) -> Tokens:
+    async def _create_tokens(self, user_id: UUID, username: str) -> Tokens:
         user_id_str = str(user_id)
-        access_token, access_token_id = jwt_service.create_access_token(user_id_str)
-        refresh_token, refresh_token_id = jwt_service.create_refresh_token(user_id_str)
+        access_token, access_token_id = jwt_service.create_access_token(
+            user_id_str, username
+        )
+        refresh_token, refresh_token_id = jwt_service.create_refresh_token(
+            user_id_str, username
+        )
 
         config = get_config()
         expires_at = datetime.now(timezone.utc) + timedelta(

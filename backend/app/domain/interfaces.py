@@ -1,7 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from app.domain.entities import User, RefreshTokenModel, PasswordResetToken
+from app.domain.entities import (
+    User,
+    RefreshTokenModel,
+    PasswordResetToken,
+    Query,
+    QueryResponse,
+    PaginatedQueries,
+)
 
 
 class IUserRepository(ABC):
@@ -79,4 +86,34 @@ class IPasswordResetRepository(ABC):
 class IEmailSender(ABC):
     @abstractmethod
     async def send_password_reset_email(self, to_email: str, reset_link: str) -> None:
+        pass
+
+
+class IQueryRepository(ABC):
+    @abstractmethod
+    async def create(self, query: Query) -> Query:
+        pass
+
+    @abstractmethod
+    async def get_by_id(self, query_id: str) -> Optional[Query]:
+        pass
+
+    @abstractmethod
+    async def get_by_user_id(
+        self, user_id: str, page: int, limit: int
+    ) -> PaginatedQueries:
+        pass
+
+    @abstractmethod
+    async def delete(self, query_id: str) -> None:
+        pass
+
+
+class IQueryResponseRepository(ABC):
+    @abstractmethod
+    async def create(self, response: QueryResponse) -> QueryResponse:
+        pass
+
+    @abstractmethod
+    async def get_by_query_id(self, query_id: str) -> Optional[QueryResponse]:
         pass

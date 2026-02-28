@@ -13,7 +13,12 @@ from app.infrastructure.database.repositories import (
     PasswordResetRepository,
 )
 from app.infrastructure.rate_limiter import RateLimitMiddleware
-from app.presentation.routers import auth_router, password_reset_router, health_router
+from app.presentation.routers import (
+    auth_router,
+    password_reset_router,
+    health_router,
+    queries_router,
+)
 
 
 @asynccontextmanager
@@ -74,12 +79,14 @@ app.add_middleware(
         "/api/v1/auth/login": (5, 60),
         "/api/v1/auth/refresh": (5, 60),
         "/api/v1/reset-password": (3, 300),
+        "/api/v1/queries": (10, 60),
     },
 )
 
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(password_reset_router, prefix="/api/v1")
+app.include_router(queries_router, prefix="/api/v1")
 
 
 if __name__ == "__main__":

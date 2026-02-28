@@ -8,10 +8,16 @@ from app.infrastructure.database.repositories.access_token_repo import (
 from app.infrastructure.database.repositories.password_reset_repo import (
     PasswordResetRepository,
 )
+from app.infrastructure.database.repositories.query_repo import QueryRepository
+from app.infrastructure.database.repositories.query_response_repo import (
+    QueryResponseRepository,
+)
 
 __all__ = [
     "UserRepository",
     "RefreshTokenRepository",
     "AccessTokenRepository",
     "PasswordResetRepository",
+    "QueryRepository",
+    "QueryResponseRepository",
 ]
