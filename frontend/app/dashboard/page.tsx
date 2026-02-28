@@ -167,7 +167,7 @@ export default function DashboardPage() {
           ownHeifersPercent: 15,
           forecastDate: '26.02.2029',
           ageFirstInsem: 395,
-          probInsem: 0.2,
+          probInsem: 0.5,
           gestation: 282,
           dryPeriod: 220,
           cullingRate: 0.025,
