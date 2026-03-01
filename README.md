@@ -1,23 +1,45 @@
-\## Проект команды "Минус-вайб кодеры"
+# ФСП Хакатон — Команда "Минус-Вайб Кодеры"
 
-url: пока отсутствует
+url: https://cattlehds.ru/ (пока разворачиваем)
 
+Веб-приложение для анализа и прогнозирования показателей молочного животноводства.
 
+## Технологии
 
-Инструкция по запуску:
+- **Frontend**: Next.js + Tailwind CSS + Radix UI
+- **Backend**: FastAPI (Python)
+- **ML**: Python (прогнозирование надоя)
 
-для запуска скачать node.js
-открыть коммандную строку в директории
-прописать
+## Структура
+
+```
+/frontend   — Next.js приложение
+/backend    — FastAPI сервис
+/ml         — ML модель
+```
+
+## Запуск
+
+### Frontend
+
+```bash
+cd frontend
 npm install
 npm run dev
+```
 
+### Backend
 
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
+### ML
 
-
-TODO:
-
-сделал страничку для авторизации добавил переключатель темы
-
-
+```bash
+cd ml
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
