@@ -4,7 +4,7 @@ from fastapi import APIRouter, Response, Depends, HTTPException, status, Cookie,
 
 from app.config import get_config
 from app.application import AuthService
-from app.presentation.deps import get_auth_service
+from app.presentation.deps import get_auth_service, get_current_user_id, CurrentUser
 from app.presentation.schemas import (
     RegisterRequest,
     RegisterResponse,
@@ -12,6 +12,11 @@ from app.presentation.schemas import (
     LoginResponse,
     RefreshResponse,
     LogoutResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    UpdateEmailRequest,
+    UpdateEmailResponse,
+    UserProfileResponse,
 )
 
 
@@ -26,7 +31,7 @@ async def register(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     try:
-        tokens = await auth_service.register(
+        await auth_service.register(
             username=body.username,
             email=body.email,
             password=body.password,
@@ -37,9 +42,7 @@ async def register(
             detail=str(e),
         )
 
-    _set_refresh_token_cookie(response, tokens.refresh_token)
-
-    return RegisterResponse(access_token=tokens.access_token)
+    return RegisterResponse()
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -69,7 +72,9 @@ async def login(
 
     _set_refresh_token_cookie(response, tokens.refresh_token)
 
-    return LoginResponse(access_token=tokens.access_token)
+    return LoginResponse(
+        access_token=tokens.access_token, role=tokens.role, user_id=tokens.user_id
+    )
 
 
 @router.get("/refresh", response_model=RefreshResponse)
@@ -112,6 +117,66 @@ async def logout(
     _clear_refresh_token_cookie(response)
 
     return LogoutResponse(ok=True)
+
+
+@router.post("/change-password", response_model=ChangePasswordResponse)
+async def change_password(
+    body: ChangePasswordRequest,
+    current_user: CurrentUser = Depends(get_current_user_id),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    try:
+        await auth_service.change_password(
+            user_id=current_user.user_id,
+            old_password=body.old_password,
+            new_password=body.new_password,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return ChangePasswordResponse()
+
+
+@router.get("/me", response_model=UserProfileResponse)
+async def get_current_user(
+    current_user: CurrentUser = Depends(get_current_user_id),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    profile = await auth_service.get_user_profile(current_user.user_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    return UserProfileResponse(
+        id=str(profile["id"]),
+        username=profile["username"],
+        email_masked=profile["email_masked"],
+        role=profile["role"],
+        status=profile["status"],
+        created_at=profile["created_at"],
+    )
+
+
+@router.patch("/email", response_model=UpdateEmailResponse)
+async def update_email(
+    body: UpdateEmailRequest,
+    current_user: CurrentUser = Depends(get_current_user_id),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    try:
+        await auth_service.update_email(current_user.user_id, body.email, body.password)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return UpdateEmailResponse()
 
 
 def _set_refresh_token_cookie(response: Response, refresh_token: str):

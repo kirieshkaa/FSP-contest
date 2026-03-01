@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_config
-from app.domain.entities import User, Tokens, RefreshTokenModel
+from app.domain.entities import User, Tokens, RefreshTokenModel, UserRole, UserStatus
 from app.domain.interfaces import (
     IUserRepository,
     IRefreshTokenRepository,
@@ -41,7 +41,7 @@ class AuthService:
         if not re.match(pattern, email):
             raise InvalidEmailError()
 
-    async def register(self, username: str, email: str, password: str) -> Tokens:
+    async def register(self, username: str, email: str, password: str) -> None:
         self._validate_email(email)
 
         existing_user = await self._user_repo.get_by_username(username)
@@ -52,19 +52,19 @@ class AuthService:
         if existing_user:
             raise UserAlreadyExistsError("email")
 
-        password_hash = hash_password(password)
+        password_hash = await hash_password(password)
 
         user = User(
             id=uuid4(),
             username=username,
             email=email,
             password_hash=password_hash,
+            role=UserRole.USER,
+            status=UserStatus.PENDING,
             created_at=datetime.now(timezone.utc),
         )
 
-        created_user = await self._user_repo.create(user)
-
-        return await self._create_tokens(created_user.id, created_user.username)
+        await self._user_repo.create(user)
 
     async def login(
         self, username: Optional[str], email: Optional[str], password: str
@@ -82,10 +82,69 @@ class AuthService:
         if not user:
             raise UserNotFoundError()
 
-        if not verify_password(password, user.password_hash):
+        if user.status != UserStatus.APPROVED:
             raise InvalidCredentialsError()
 
-        return await self._create_tokens(user.id, user.username)
+        if not await verify_password(password, user.password_hash):
+            raise InvalidCredentialsError()
+
+        return await self._create_tokens(user.id, user.username, user.role.value)
+
+    async def change_password(
+        self, user_id: str, old_password: str, new_password: str
+    ) -> None:
+        user = await self._user_repo.get_by_id(user_id)
+        if not user:
+            raise UserNotFoundError()
+
+        if not await verify_password(old_password, user.password_hash):
+            raise InvalidCredentialsError()
+
+        new_password_hash = await hash_password(new_password)
+        await self._user_repo.update_password(user_id, new_password_hash)
+        await self._refresh_token_repo.delete_by_user_id(user_id)
+
+    async def get_user_profile(self, user_id: str) -> Optional[dict]:
+        user = await self._user_repo.get_by_id(user_id)
+        if not user:
+            return None
+
+        email = user.email
+        email_masked = self._mask_email(email)
+
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": email,
+            "email_masked": email_masked,
+            "role": user.role.value,
+            "status": user.status.value,
+            "created_at": user.created_at,
+        }
+
+    def _mask_email(self, email: str) -> str:
+        if not email or "@" not in email:
+            return email
+        local, domain = email.rsplit("@", 1)
+        if len(local) <= 2:
+            masked_local = local[0] + "*"
+        else:
+            masked_local = local[:2] + "*" * (len(local) - 2)
+        return f"{masked_local}@{domain}"
+
+    async def update_email(self, user_id: str, new_email: str, password: str) -> None:
+        user = await self._user_repo.get_by_id(user_id)
+        if not user:
+            raise Exception("User not found")
+
+        if not await verify_password(password, user.password_hash):
+            raise Exception("Invalid password")
+
+        existing = await self._user_repo.get_by_email(new_email)
+        if existing and str(existing.id) != user_id:
+            raise Exception("Email already in use")
+
+        await self._user_repo.update_email(user_id, new_email)
 
     async def refresh(self, refresh_token: str) -> Tokens:
         payload = jwt_service.verify_refresh_token(refresh_token)
@@ -93,27 +152,28 @@ class AuthService:
             raise InvalidTokenError()
 
         user_id_str = payload.get("user_id")
-        username = payload.get("username")
+        username = payload.get("username", "")
+        role = payload.get("role", "user")
         user_id = UUID(user_id_str)
 
         stored_token = await self._refresh_token_repo.get_and_delete(refresh_token)
         if not stored_token:
             raise InvalidTokenError()
 
-        return await self._create_tokens(user_id, username)
+        return await self._create_tokens(user_id, username, role)
 
     async def logout(self, refresh_token: str) -> None:
         payload = jwt_service.verify_refresh_token(refresh_token)
         if payload:
             await self._refresh_token_repo.delete(refresh_token)
 
-    async def _create_tokens(self, user_id: UUID, username: str) -> Tokens:
+    async def _create_tokens(self, user_id: UUID, username: str, role: str) -> Tokens:
         user_id_str = str(user_id)
         access_token, access_token_id = jwt_service.create_access_token(
-            user_id_str, username
+            user_id_str, username, role
         )
         refresh_token, refresh_token_id = jwt_service.create_refresh_token(
-            user_id_str, username
+            user_id_str, username, role
         )
 
         config = get_config()
@@ -134,4 +194,6 @@ class AuthService:
             refresh_token=refresh_token,
             access_token_id=access_token_id,
             refresh_token_id=refresh_token_id,
+            role=role,
+            user_id=user_id_str,
         )

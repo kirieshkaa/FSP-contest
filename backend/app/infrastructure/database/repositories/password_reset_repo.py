@@ -53,6 +53,14 @@ class PasswordResetRepository(IPasswordResetRepository):
         )
         await self._session.commit()
 
+    async def delete_by_user_id(self, user_id: UUID) -> None:
+        await self._session.execute(
+            delete(PasswordResetTokenModelDB).where(
+                PasswordResetTokenModelDB.user_id == user_id
+            )
+        )
+        await self._session.commit()
+
     async def delete_expired(self) -> None:
         await self._session.execute(
             delete(PasswordResetTokenModelDB).where(

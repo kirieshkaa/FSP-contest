@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from urllib.parse import urlparse
+from uuid import uuid4
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -11,6 +13,7 @@ from app.infrastructure.database import init_redis, close_redis, get_db
 from app.infrastructure.database.repositories import (
     RefreshTokenRepository,
     PasswordResetRepository,
+    UserRepository,
 )
 from app.infrastructure.rate_limiter import RateLimitMiddleware
 from app.presentation.routers import (
@@ -19,6 +22,9 @@ from app.presentation.routers import (
     health_router,
     queries_router,
 )
+from app.presentation.routers.admin import router as admin_router
+from app.domain.entities import User, UserRole, UserStatus
+from app.shared import hash_password
 
 
 @asynccontextmanager
@@ -30,6 +36,23 @@ async def lifespan(app: FastAPI):
         password_reset_repo = PasswordResetRepository(session)
         await refresh_repo.delete_expired()
         await password_reset_repo.delete_expired()
+
+        config = get_config()
+        user_repo = UserRepository(session)
+
+        existing_admin = await user_repo.get_by_username(config.admin.username)
+        if not existing_admin:
+            admin_user = User(
+                id=uuid4(),
+                username=config.admin.username,
+                email=config.admin.email,
+                password_hash=await hash_password(config.admin.password),
+                role=UserRole.ADMIN,
+                status=UserStatus.APPROVED,
+                created_at=datetime.now(timezone.utc),
+            )
+            await user_repo.create(admin_user)
+
         break
 
     yield
@@ -68,15 +91,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 app.add_middleware(
     RateLimitMiddleware,
     limits={
         "/api/v1/auth/register": (10, 60),
-        "/api/v1/auth/login": (5, 60),
+        "/api/v1/auth/login": (15, 60),
         "/api/v1/auth/refresh": (5, 60),
         "/api/v1/reset-password": (3, 300),
         "/api/v1/queries": (60, 60),
@@ -87,6 +110,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(password_reset_router, prefix="/api/v1")
 app.include_router(queries_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
+from uuid import UUID
 
 from app.domain.entities import (
     User,
@@ -8,6 +9,8 @@ from app.domain.entities import (
     Query,
     QueryResponse,
     PaginatedQueries,
+    UserRole,
+    UserStatus,
 )
 
 
@@ -32,6 +35,28 @@ class IUserRepository(ABC):
     async def update_password(self, user_id: str, password_hash: str) -> None:
         pass
 
+    @abstractmethod
+    async def get_all(
+        self, page: int, limit: int, status_filter: Optional[UserStatus] = None
+    ) -> tuple[list[User], int]:
+        pass
+
+    @abstractmethod
+    async def update_status(self, user_id: str, status: UserStatus) -> None:
+        pass
+
+    @abstractmethod
+    async def update_role(self, user_id: str, role: UserRole) -> None:
+        pass
+
+    @abstractmethod
+    async def update_email(self, user_id: str, email: str) -> None:
+        pass
+
+    @abstractmethod
+    async def delete(self, user_id: str) -> None:
+        pass
+
 
 class IRefreshTokenRepository(ABC):
     @abstractmethod
@@ -52,6 +77,10 @@ class IRefreshTokenRepository(ABC):
 
     @abstractmethod
     async def delete_expired(self) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: str) -> None:
         pass
 
 
@@ -76,6 +105,10 @@ class IPasswordResetRepository(ABC):
 
     @abstractmethod
     async def delete(self, token: str) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: UUID) -> None:
         pass
 
     @abstractmethod

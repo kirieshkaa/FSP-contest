@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.database import get_db
 from app.infrastructure.database.redis import get_redis
@@ -9,22 +10,25 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("")
-async def health_check(db=Depends(get_db)):
+async def health_check(response: Response, db: AsyncSession = Depends(get_db)):
+    errors = []
+
     try:
         await db.execute(text("SELECT 1"))
     except Exception as e:
-        return {
-            "healthy": False,
-            "error": f"Database unavailable: {str(e)}",
-        }
+        errors.append(f"Database unavailable: {str(e)}")
 
     try:
         redis = get_redis()
         await redis.ping()
     except Exception as e:
+        errors.append(f"Redis unavailable: {str(e)}")
+
+    if errors:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {
             "healthy": False,
-            "error": f"Redis unavailable: {str(e)}",
+            "error": "; ".join(errors),
         }
 
     return {"healthy": True}

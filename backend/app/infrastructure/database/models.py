@@ -1,12 +1,25 @@
 from datetime import datetime
 from uuid import uuid4
 from typing import Optional
+from enum import Enum as PyEnum
 
-from sqlalchemy import String, DateTime, func, ForeignKey, JSON
+from sqlalchemy import String, DateTime, func, ForeignKey, JSON, Enum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.postgres import Base
+
+
+class UserRole(str, PyEnum):
+    USER = "user"
+    ADMIN = "admin"
+
+
+class UserStatus(str, PyEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    BLOCKED = "blocked"
 
 
 class UserModel(Base):
@@ -24,6 +37,24 @@ class UserModel(Base):
     )
     password_hash: Mapped[str] = mapped_column(
         String(255), nullable=False, name="user_password"
+    )
+    role: Mapped[UserRole] = mapped_column(
+        Enum(
+            UserRole, native_enum=False, values_callable=lambda x: [e.value for e in x]
+        ),
+        nullable=False,
+        default=UserRole.USER,
+        name="role",
+    )
+    status: Mapped[UserStatus] = mapped_column(
+        Enum(
+            UserStatus,
+            native_enum=False,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+        default=UserStatus.PENDING,
+        name="status",
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

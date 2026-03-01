@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 from uuid import UUID
+
+from app.infrastructure.database.models import UserRole, UserStatus
 
 
 @dataclass
@@ -10,6 +13,8 @@ class User:
     username: str
     email: str
     password_hash: str
+    role: UserRole
+    status: UserStatus
     created_at: datetime
 
 
@@ -19,6 +24,8 @@ class Tokens:
     refresh_token: str
     access_token_id: str
     refresh_token_id: str
+    role: str = "user"
+    user_id: str = ""
 
 
 @dataclass
