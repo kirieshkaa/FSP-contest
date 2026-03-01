@@ -1,0 +1,326 @@
+[
+  {
+    "month": "2026-02",
+    "avg_dim": 171.9,
+    "cows_count": 779,
+    "total_adults": 1096,
+    "milk_total": 473210,
+    "first_calvings": 12,
+    "purchased": 0
+  },
+  {
+    "month": "2026-03",
+    "avg_dim": 178.8,
+    "cows_count": 732,
+    "total_adults": 1101,
+    "milk_total": 432523,
+    "first_calvings": 11,
+    "purchased": 0
+  },
+  {
+    "month": "2026-04",
+    "avg_dim": 179.8,
+    "cows_count": 698,
+    "total_adults": 1095,
+    "milk_total": 410697,
+    "first_calvings": 15,
+    "purchased": 0
+  },
+  {
+    "month": "2026-05",
+    "avg_dim": 168.0,
+    "cows_count": 702,
+    "total_adults": 1096,
+    "milk_total": 433044,
+    "first_calvings": 36,
+    "purchased": 0
+  },
+  {
+    "month": "2026-06",
+    "avg_dim": 163.1,
+    "cows_count": 728,
+    "total_adults": 1101,
+    "milk_total": 457514,
+    "first_calvings": 32,
+    "purchased": 0
+  },
+  {
+    "month": "2026-07",
+    "avg_dim": 163.2,
+    "cows_count": 762,
+    "total_adults": 1097,
+    "milk_total": 478869,
+    "first_calvings": 26,
+    "purchased": 0
+  },
+  {
+    "month": "2026-08",
+    "avg_dim": 174.5,
+    "cows_count": 830,
+    "total_adults": 1108,
+    "milk_total": 498967,
+    "first_calvings": 32,
+    "purchased": 0
+  },
+  {
+    "month": "2026-09",
+    "avg_dim": 190.4,
+    "cows_count": 873,
+    "total_adults": 1116,
+    "milk_total": 491553,
+    "first_calvings": 31,
+    "purchased": 0
+  },
+  {
+    "month": "2026-10",
+    "avg_dim": 186.0,
+    "cows_count": 700,
+    "total_adults": 1125,
+    "milk_total": 401462,
+    "first_calvings": 0,
+    "purchased": 0
+  },
+  {
+    "month": "2026-11",
+    "avg_dim": 190.1,
+    "cows_count": 587,
+    "total_adults": 1136,
+    "milk_total": 330945,
+    "first_calvings": 0,
+    "purchased": 0
+  },
+  {
+    "month": "2026-12",
+    "avg_dim": 146.2,
+    "cows_count": 680,
+    "total_adults": 1130,
+    "milk_total": 454982,
+    "first_calvings": 33,
+    "purchased": 0
+  },
+  {
+    "month": "2027-01",
+    "avg_dim": 133.3,
+    "cows_count": 720,
+    "total_adults": 1140,
+    "milk_total": 504014,
+    "first_calvings": 23,
+    "purchased": 0
+  },
+  {
+    "month": "2027-02",
+    "avg_dim": 134.5,
+    "cows_count": 759,
+    "total_adults": 1140,
+    "milk_total": 529209,
+    "first_calvings": 23,
+    "purchased": 0
+  },
+  {
+    "month": "2027-03",
+    "avg_dim": 136.9,
+    "cows_count": 771,
+    "total_adults": 1122,
+    "milk_total": 533080,
+    "first_calvings": 30,
+    "purchased": 0
+  },
+  {
+    "month": "2027-04",
+    "avg_dim": 140.0,
+    "cows_count": 744,
+    "total_adults": 1120,
+    "milk_total": 508922,
+    "first_calvings": 24,
+    "purchased": 0
+  },
+  {
+    "month": "2027-05",
+    "avg_dim": 137.5,
+    "cows_count": 727,
+    "total_adults": 1110,
+    "milk_total": 501708,
+    "first_calvings": 24,
+    "purchased": 0
+  },
+  {
+    "month": "2027-06",
+    "avg_dim": 133.1,
+    "cows_count": 729,
+    "total_adults": 1088,
+    "milk_total": 510624,
+    "first_calvings": 23,
+    "purchased": 0
+  },
+  {
+    "month": "2027-07",
+    "avg_dim": 132.3,
+    "cows_count": 757,
+    "total_adults": 1102,
+    "milk_total": 531840,
+    "first_calvings": 25,
+    "purchased": 0
+  },
+  {
+    "month": "2027-08",
+    "avg_dim": 136.9,
+    "cows_count": 802,
+    "total_adults": 1104,
+    "milk_total": 554484,
+    "first_calvings": 29,
+    "purchased": 0
+  },
+  {
+    "month": "2027-09",
+    "avg_dim": 149.0,
+    "cows_count": 843,
+    "total_adults": 1103,
+    "milk_total": 558432,
+    "first_calvings": 29,
+    "purchased": 0
+  },
+  {
+    "month": "2027-10",
+    "avg_dim": 157.5,
+    "cows_count": 791,
+    "total_adults": 1106,
+    "milk_total": 507732,
+    "first_calvings": 24,
+    "purchased": 0
+  },
+  {
+    "month": "2027-11",
+    "avg_dim": 163.1,
+    "cows_count": 731,
+    "total_adults": 1103,
+    "milk_total": 459564,
+    "first_calvings": 28,
+    "purchased": 0
+  },
+  {
+    "month": "2027-12",
+    "avg_dim": 153.4,
+    "cows_count": 733,
+    "total_adults": 1092,
+    "milk_total": 477731,
+    "first_calvings": 22,
+    "purchased": 0
+  },
+  {
+    "month": "2028-01",
+    "avg_dim": 147.8,
+    "cows_count": 727,
+    "total_adults": 1071,
+    "milk_total": 483635,
+    "first_calvings": 11,
+    "purchased": 0
+  },
+  {
+    "month": "2028-02",
+    "avg_dim": 142.9,
+    "cows_count": 737,
+    "total_adults": 1079,
+    "milk_total": 498947,
+    "first_calvings": 17,
+    "purchased": 0
+  },
+  {
+    "month": "2028-03",
+    "avg_dim": 144.2,
+    "cows_count": 747,
+    "total_adults": 1090,
+    "milk_total": 503387,
+    "first_calvings": 12,
+    "purchased": 0
+  },
+  {
+    "month": "2028-04",
+    "avg_dim": 146.5,
+    "cows_count": 740,
+    "total_adults": 1095,
+    "milk_total": 494664,
+    "first_calvings": 9,
+    "purchased": 0
+  },
+  {
+    "month": "2028-05",
+    "avg_dim": 144.1,
+    "cows_count": 731,
+    "total_adults": 1102,
+    "milk_total": 492756,
+    "first_calvings": 25,
+    "purchased": 0
+  },
+  {
+    "month": "2028-06",
+    "avg_dim": 142.2,
+    "cows_count": 718,
+    "total_adults": 1092,
+    "milk_total": 487344,
+    "first_calvings": 27,
+    "purchased": 0
+  },
+  {
+    "month": "2028-07",
+    "avg_dim": 136.6,
+    "cows_count": 730,
+    "total_adults": 1085,
+    "milk_total": 505344,
+    "first_calvings": 28,
+    "purchased": 0
+  },
+  {
+    "month": "2028-08",
+    "avg_dim": 138.0,
+    "cows_count": 750,
+    "total_adults": 1081,
+    "milk_total": 516528,
+    "first_calvings": 24,
+    "purchased": 0
+  },
+  {
+    "month": "2028-09",
+    "avg_dim": 144.6,
+    "cows_count": 768,
+    "total_adults": 1073,
+    "milk_total": 516887,
+    "first_calvings": 20,
+    "purchased": 0
+  },
+  {
+    "month": "2028-10",
+    "avg_dim": 150.6,
+    "cows_count": 747,
+    "total_adults": 1068,
+    "milk_total": 491940,
+    "first_calvings": 10,
+    "purchased": 0
+  },
+  {
+    "month": "2028-11",
+    "avg_dim": 158.9,
+    "cows_count": 702,
+    "total_adults": 1079,
+    "milk_total": 448344,
+    "first_calvings": 1,
+    "purchased": 0
+  },
+  {
+    "month": "2028-12",
+    "avg_dim": 154.7,
+    "cows_count": 707,
+    "total_adults": 1076,
+    "milk_total": 458627,
+    "first_calvings": 29,
+    "purchased": 0
+  },
+  {
+    "month": "2029-01",
+    "avg_dim": 149.9,
+    "cows_count": 713,
+    "total_adults": 1059,
+    "milk_total": 470795,
+    "first_calvings": 29,
+    "purchased": 0
+  }
+]
