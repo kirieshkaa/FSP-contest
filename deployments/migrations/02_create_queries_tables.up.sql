@@ -20,3 +20,7 @@ CREATE TABLE IF NOT EXISTS query_service.query_responses (
 );
 
 CREATE INDEX queries_user_id_idx ON query_service.queries(user_id);
+
+-- Additional indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_queries_created_at ON query_service.queries(created_at);
+CREATE INDEX IF NOT EXISTS idx_query_responses_query_id ON query_service.query_responses(query_id);

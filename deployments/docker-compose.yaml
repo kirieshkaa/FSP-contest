@@ -66,8 +66,8 @@ services:
       redis:
         condition: service_started
     environment:
-      SERVER_HOST: ${SERVER_HOST}
-      SERVER_PORT: ${SERVER_PORT}
+      BACKEND_HOST: ${BACKEND_HOST:-0.0.0.0}
+      BACKEND_PORT: ${BACKEND_PORT:-8000}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER}
@@ -86,8 +86,6 @@ services:
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN}
-    ports:
-      - "${BACKEND_EXTERNAL_PORT:-8000}:8000"
     networks:
       - fsp-network
     env_file:
@@ -130,7 +128,7 @@ services:
       backend:
         condition: service_started
     ports:
-      - "${NGINX_EXTERNAL_PORT:-80}:80"
+      - "${SERVER_PORT:-3001}:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:

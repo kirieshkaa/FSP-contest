@@ -179,3 +179,29 @@ async def delete_user(
     await user_repo.delete(user_id)
 
     return {"ok": True, "message": "User deleted"}
+
+
+@router.post("/users/{user_id}/unblock")
+async def unblock_user(
+    user_id: str,
+    current_user: CurrentUser = Depends(get_current_admin),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    user_repo = auth_service._user_repo
+
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user_id == current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot change your own status",
+        )
+
+    await user_repo.update_status(user_id, UserStatus.APPROVED)
+
+    return {"ok": True, "message": "User unblocked"}

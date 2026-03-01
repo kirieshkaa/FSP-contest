@@ -28,26 +28,38 @@ export function DataUpload({
     setDragOver(false)
     const f = e.dataTransfer.files?.[0]
     if (f && f.name.endsWith(".csv")) {
-      const newFile: ScenarioFile = {
-        id: `f${Date.now()}`,
-        name: f.name,
-        rows: Math.floor(Math.random() * 1000) + 500,
-        uploadedAt: new Date().toLocaleDateString("ru-RU"),
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const text = event.target?.result as string
+        const lines = text.split('\n').filter((line) => line.trim())
+        const newFile: ScenarioFile = {
+          id: `f${Date.now()}`,
+          name: f.name,
+          rows: lines.length,
+          uploadedAt: new Date().toLocaleDateString("ru-RU"),
+        }
+        onFileAdd(newFile)
       }
-      onFileAdd(newFile)
+      reader.readAsText(f)
     }
   }, [onFileAdd])
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (f && f.name.endsWith(".csv")) {
-      const newFile: ScenarioFile = {
-        id: `f${Date.now()}`,
-        name: f.name,
-        rows: Math.floor(Math.random() * 1000) + 500,
-        uploadedAt: new Date().toLocaleDateString("ru-RU"),
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const text = event.target?.result as string
+        const lines = text.split('\n').filter((line) => line.trim())
+        const newFile: ScenarioFile = {
+          id: `f${Date.now()}`,
+          name: f.name,
+          rows: lines.length,
+          uploadedAt: new Date().toLocaleDateString("ru-RU"),
+        }
+        onFileAdd(newFile)
       }
-      onFileAdd(newFile)
+      reader.readAsText(f)
     }
   }, [onFileAdd])
 

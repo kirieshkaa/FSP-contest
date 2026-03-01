@@ -3,7 +3,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 export function getBaseUrl(): string {
-  return API_BASE_URL.replace("/api/v1", "").replace("/api", "")
+  return process.env.NEXT_PUBLIC_ASSET_PREFIX || ""
 }
 
 const api = axios.create({

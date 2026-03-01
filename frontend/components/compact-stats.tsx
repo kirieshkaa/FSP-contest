@@ -14,10 +14,10 @@ export function CompactStats({ data, customDateValue }: CompactStatsProps) {
   const in36 = data[Math.min(35, data.length - 1)]?.avg_dim ?? 0
 
   const stats = [
-    { label: "Сейчас", value: now },
-    { label: "Через 12 мес", value: in12 },
-    { label: "Через 36 мес", value: in36 },
-    { label: "На выбранную дату", value: customDateValue ?? in36 },
+    { label: "Средние дни доения (сейчас)", value: now },
+    { label: "Средние дни доения (через 12 мес)", value: in12 },
+    { label: "Средние дни доения (через 36 мес)", value: in36 },
+    { label: "Средние дни доения (на дату)", value: customDateValue ?? in36 },
   ]
 
   return (

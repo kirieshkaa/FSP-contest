@@ -41,7 +41,54 @@ async def create_query(
     query_service: QueryService = Depends(get_query_service),
 ):
     try:
+        if not file.filename or not file.filename.endswith(".csv"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Поддерживаются только CSV файлы",
+            )
+
         file_content = await file.read()
+
+        import pandas as pd
+        import io
+
+        try:
+            df = pd.read_csv(
+                io.BytesIO(file_content),
+                encoding="utf-8-sig",
+                sep=None,
+                engine="python",
+            )
+        except Exception:
+            for sep in [",", ";", "\t"]:
+                try:
+                    df = pd.read_csv(
+                        io.BytesIO(file_content), encoding="utf-8-sig", sep=sep
+                    )
+                    if len(df.columns) > 1:
+                        break
+                except Exception:
+                    continue
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Не удалось прочитать CSV файл",
+                )
+
+        df.columns = df.columns.str.strip()
+
+        REQUIRED_COLUMNS = [
+            "Номер животного",
+            "Дата рождения",
+            "Дни в доении",
+            "Статус коровы",
+        ]
+        missing_columns = set(REQUIRED_COLUMNS) - set(df.columns)
+        if missing_columns:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Отсутствуют обязательные колонки: {', '.join(missing_columns)}",
+            )
         query = await query_service.create_query(
             user_id=current_user.user_id,
             file_content=file_content,
@@ -63,7 +110,6 @@ async def create_query(
         return {
             "query_id": str(query.id),
             "query_title": query.query_title,
-            "file_path": query.file_path,
             "created_at": query.created_at.isoformat(),
         }
     except Exception as e:
@@ -86,7 +132,6 @@ async def get_queries(
             {
                 "query_id": str(q.id),
                 "query_title": q.query_title,
-                "file_path": q.file_path,
                 "created_at": q.created_at.isoformat(),
             }
             for q in result.items
@@ -122,7 +167,6 @@ async def get_query(
         "query": {
             "query_id": str(query.id),
             "query_title": query.query_title,
-            "file_path": query.file_path,
             "created_at": query.created_at.isoformat(),
         },
         "response": {

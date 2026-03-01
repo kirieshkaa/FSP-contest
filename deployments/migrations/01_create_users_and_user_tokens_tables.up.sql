@@ -37,3 +37,12 @@ CREATE TABLE IF NOT EXISTS auth_service.password_reset_tokens (
 
 CREATE UNIQUE INDEX refresh_tokens_refresh_token_idx ON auth_service.refresh_tokens(refresh_token);
 CREATE UNIQUE INDEX password_reset_tokens_reset_token_idx ON auth_service.password_reset_tokens(reset_token);
+
+-- Additional indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_users_username ON auth_service.users(user_name);
+CREATE INDEX IF NOT EXISTS idx_users_email ON auth_service.users(user_email);
+CREATE INDEX IF NOT EXISTS idx_users_status ON auth_service.users(status);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON auth_service.refresh_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON auth_service.refresh_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON auth_service.password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at ON auth_service.password_reset_tokens(expires_at);

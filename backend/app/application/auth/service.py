@@ -52,7 +52,7 @@ class AuthService:
         if existing_user:
             raise UserAlreadyExistsError("email")
 
-        password_hash = hash_password(password)
+        password_hash = await hash_password(password)
 
         user = User(
             id=uuid4(),
@@ -85,7 +85,7 @@ class AuthService:
         if user.status != UserStatus.APPROVED:
             raise InvalidCredentialsError()
 
-        if not verify_password(password, user.password_hash):
+        if not await verify_password(password, user.password_hash):
             raise InvalidCredentialsError()
 
         return await self._create_tokens(user.id, user.username, user.role.value)
@@ -97,11 +97,12 @@ class AuthService:
         if not user:
             raise UserNotFoundError()
 
-        if not verify_password(old_password, user.password_hash):
+        if not await verify_password(old_password, user.password_hash):
             raise InvalidCredentialsError()
 
-        new_password_hash = hash_password(new_password)
+        new_password_hash = await hash_password(new_password)
         await self._user_repo.update_password(user_id, new_password_hash)
+        await self._refresh_token_repo.delete_by_user_id(user_id)
 
     async def get_user_profile(self, user_id: str) -> Optional[dict]:
         user = await self._user_repo.get_by_id(user_id)
@@ -136,7 +137,7 @@ class AuthService:
         if not user:
             raise Exception("User not found")
 
-        if not verify_password(password, user.password_hash):
+        if not await verify_password(password, user.password_hash):
             raise Exception("Invalid password")
 
         existing = await self._user_repo.get_by_email(new_email)

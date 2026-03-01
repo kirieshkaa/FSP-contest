@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
+import { motion } from 'framer-motion'
 import { getUserProfile, updateEmail, changePassword, logout, isAuthenticated, getBaseUrl } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,44 +11,21 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { BarChart3, LogOut, User, Mail, Lock, Calendar, Shield } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 
-function ThemeToggle({ className = '' }: { className?: string }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <button className={`theme-toggle w-9 h-9 rounded-md border bg-background text-foreground flex items-center justify-center transition-colors hover:bg-accent ${className}`} aria-label="Переключить тему">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      </button>
-    );
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
   }
+}
 
-  const isDark = resolvedTheme === 'dark';
-
-  return (
-    <button
-      className={`theme-toggle w-9 h-9 rounded-md border bg-background text-foreground flex items-center justify-center transition-colors hover:bg-accent ${className}`}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      aria-label="Переключить тему"
-    >
-      {isDark ? (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-        </svg>
-      ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      )}
-    </button>
-  );
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
 }
 
 export default function ProfilePage() {
@@ -82,6 +60,7 @@ const baseUrl = getBaseUrl()
       const data = await getUserProfile()
       setProfile(data)
       setEmail('')
+      setIsAdmin(localStorage.getItem('user_role') === 'admin')
     } catch (err) {
       console.error('Failed to load profile:', err)
       toast({ title: 'Ошибка', description: 'Не удалось загрузить профиль', variant: 'destructive' })
@@ -211,15 +190,21 @@ const baseUrl = getBaseUrl()
               <LogOut className="size-4" />
               Выйти
             </Button>
-            <ThemeToggle />
+            <ThemeToggle variant="embedded" />
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
+        <motion.div 
+          className="space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          >
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="size-5" />
                 Информация о пользователе
@@ -246,14 +231,16 @@ const baseUrl = getBaseUrl()
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="size-5" />
-                Изменить email
-              </CardTitle>
-            </CardHeader>
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="size-5" />
+                  Изменить email
+                </CardTitle>
+              </CardHeader>
             <CardContent>
               <form onSubmit={handleEmailUpdate} className="space-y-4">
                 <div>
@@ -293,14 +280,16 @@ const baseUrl = getBaseUrl()
               </form>
             </CardContent>
           </Card>
+          </motion.div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="size-5" />
-                Изменить пароль
-              </CardTitle>
-            </CardHeader>
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="size-5" />
+                  Изменить пароль
+                </CardTitle>
+              </CardHeader>
             <CardContent>
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
@@ -337,7 +326,8 @@ const baseUrl = getBaseUrl()
               </form>
             </CardContent>
           </Card>
-        </div>
+          </motion.div>
+        </motion.div>
       </main>
     </div>
   )

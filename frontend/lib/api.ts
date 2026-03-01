@@ -11,7 +11,6 @@ export interface RegisterRequest {
 export interface Query {
   query_id: string;
   query_title: string | null;
-  file_path: string;
   created_at: string;
 }
 
@@ -236,6 +235,15 @@ export async function blockUser(userId: string): Promise<void> {
   } catch (error) {
     const axiosError = error as { response?: { data?: { detail?: string } } };
     throw new Error(axiosError.response?.data?.detail || 'Failed to block user');
+  }
+}
+
+export async function unblockUser(userId: string): Promise<void> {
+  try {
+    await api.post(`/admin/users/${userId}/unblock`);
+  } catch (error) {
+    const axiosError = error as { response?: { data?: { detail?: string } } };
+    throw new Error(axiosError.response?.data?.detail || 'Failed to unblock user');
   }
 }
 

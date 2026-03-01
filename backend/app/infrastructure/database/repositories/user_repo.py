@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.entities import User, UserRole, UserStatus
@@ -108,6 +108,8 @@ class UserRepository(IUserRepository):
         if status_filter:
             query = query.where(UserModel.status == status_filter)
             count_query = count_query.where(UserModel.status == status_filter)
+
+        query = query.order_by(UserModel.created_at.desc())
 
         offset = (page - 1) * limit
         query = query.offset(offset).limit(limit)

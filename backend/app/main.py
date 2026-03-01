@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
                 id=uuid4(),
                 username=config.admin.username,
                 email=config.admin.email,
-                password_hash=hash_password(config.admin.password),
+                password_hash=await hash_password(config.admin.password),
                 role=UserRole.ADMIN,
                 status=UserStatus.APPROVED,
                 created_at=datetime.now(timezone.utc),
@@ -91,8 +91,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 app.add_middleware(

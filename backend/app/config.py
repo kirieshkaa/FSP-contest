@@ -116,8 +116,8 @@ class AppConfig(BaseModel):
 
 ENV_VAR_MAPPING = {
     "server": {
-        "host": "SERVER_HOST",
-        "port": "SERVER_PORT",
+        "host": "BACKEND_HOST",
+        "port": "BACKEND_PORT",
     },
     "database": {
         "host": "POSTGRES_HOST",

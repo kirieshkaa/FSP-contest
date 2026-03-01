@@ -3,7 +3,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
-import { getUsers, approveUser, rejectUser, blockUser, deleteUser, logout, isAuthenticated, getBaseUrl } from '@/lib/api'
+import { motion } from 'framer-motion'
+import { getUsers, approveUser, rejectUser, blockUser, unblockUser, deleteUser, logout, isAuthenticated, getBaseUrl } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -163,6 +164,20 @@ export default function AdminPage() {
     }
   }
 
+  const handleUnblock = async (userId: string) => {
+    setActionLoading(userId)
+    try {
+      await unblockUser(userId)
+      await loadUsers()
+      toast({ title: 'Успешно', description: 'Пользователь разблокирован' })
+    } catch (err: any) {
+      const msg = err?.message || 'Не удалось разблокировать пользователя'
+      toast({ title: 'Ошибка', description: msg, variant: 'destructive' })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const handleDelete = async (userId: string) => {
     setActionLoading(userId)
     try {
@@ -288,8 +303,13 @@ export default function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map(user => (
-                  <TableRow key={user.id}>
+                {filteredUsers.map((user, index) => (
+                  <motion.tr
+                    key={user.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
                     <TableCell className="font-mono text-xs">{user.id.slice(0, 8)}...</TableCell>
                     <TableCell>{user.username}</TableCell>
                     <TableCell>{user.email}</TableCell>
@@ -336,7 +356,7 @@ export default function AdminPage() {
                             Заблокировать
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => handleApprove(user.id)}
+                            onClick={() => handleUnblock(user.id)}
                             disabled={user.status === 'approved' || user.role === 'admin' || user.id === currentUserId}
                           >
                             <Check className="size-4 mr-2" />
@@ -353,7 +373,7 @@ export default function AdminPage() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
-                  </TableRow>
+                  </motion.tr>
                 ))}
                 {filteredUsers.length === 0 && (
                   <TableRow>
