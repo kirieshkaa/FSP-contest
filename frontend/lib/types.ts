@@ -25,11 +25,12 @@ export interface ScenarioParams {
 
 export interface ForecastRow {
   month: string
-  avgMilkingDays: number
-  milkingHeadCount: number
-  dryHeadCount: number
-  ownHeifers: number
-  purchasedHeifers: number
+  avg_dim: number
+  cows_count: number
+  total_adults: number
+  milk_total: number
+  first_calvings: number
+  purchased?: number
 }
 
 export type PeriodKey = "1" | "12" | "36"

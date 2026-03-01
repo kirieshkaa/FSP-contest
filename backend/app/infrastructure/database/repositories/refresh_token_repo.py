@@ -71,3 +71,9 @@ class RefreshTokenRepository(IRefreshTokenRepository):
             )
         )
         await self._session.commit()
+
+    async def delete_by_user_id(self, user_id: str) -> None:
+        await self._session.execute(
+            delete(RefreshTokenModelDB).where(RefreshTokenModelDB.user_id == user_id)
+        )
+        await self._session.commit()

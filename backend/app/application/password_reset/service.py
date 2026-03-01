@@ -43,6 +43,8 @@ class PasswordResetService:
         if not user:
             return
 
+        await self._password_reset_repo.delete_by_user_id(user.id)
+
         token = self._generate_token()
         config = get_config()
         expires_at = datetime.now(timezone.utc) + timedelta(
@@ -73,7 +75,7 @@ class PasswordResetService:
             await self._password_reset_repo.delete(token)
             raise InvalidTokenError()
 
-        password_hash = hash_password(new_password)
+        password_hash = await hash_password(new_password)
         await self._user_repo.update_password(
             password_reset_token.user_id, password_hash
         )

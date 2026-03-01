@@ -19,7 +19,7 @@ interface ForecastTableProps {
   periodMonths: number
 }
 
-type TableSet = "herd" | "heifers"
+type TableSet = "herd" | "milk" | "heifers"
 
 const PAGE_SIZE = 12
 
@@ -43,15 +43,23 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
               variant={tableSet === "herd" ? "default" : "ghost"}
               size="sm"
               onClick={() => setTableSet("herd")}
-              className={`h-6 px-2 text-xs rounded-sm ${tableSet === "herd" ? "shadow-sm" : ""}`}
+              className={`h-6 px-2 text-xs rounded-sm cursor-pointer ${tableSet === "herd" ? "shadow-sm" : ""}`}
             >
               Стадо
+            </Button>
+            <Button
+              variant={tableSet === "milk" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setTableSet("milk")}
+              className={`h-6 px-2 text-xs rounded-sm cursor-pointer ${tableSet === "milk" ? "shadow-sm" : ""}`}
+            >
+              Молоко
             </Button>
             <Button
               variant={tableSet === "heifers" ? "default" : "ghost"}
               size="sm"
               onClick={() => setTableSet("heifers")}
-              className={`h-6 px-2 text-xs rounded-sm ${tableSet === "heifers" ? "shadow-sm" : ""}`}
+              className={`h-6 px-2 text-xs rounded-sm cursor-pointer ${tableSet === "heifers" ? "shadow-sm" : ""}`}
             >
               Первотёлки
             </Button>
@@ -60,7 +68,7 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
             variant="ghost"
             size="sm"
             onClick={() => setCollapsed(!collapsed)}
-            className="gap-1 text-xs text-muted-foreground"
+            className="gap-1 text-xs text-muted-foreground cursor-pointer"
           >
             {collapsed ? (
               <>
@@ -74,7 +82,9 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
           </Button>
         </div>
       </CardHeader>
-      {!collapsed && (
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? 'max-h-0 opacity-0' : 'max-h-[600px] opacity-100'}`}
+      >
         <CardContent className="px-0 pb-3">
           <div className="overflow-x-auto">
             <Table>
@@ -93,13 +103,25 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
                         Сухостойные, гол
                       </TableHead>
                     </>
+                  ) : tableSet === "milk" ? (
+                    <>
+                      <TableHead className="text-right text-xs">
+                        Всего голов
+                      </TableHead>
+                      <TableHead className="text-right text-xs">
+                        Удой всего, ц
+                      </TableHead>
+                      <TableHead className="text-right text-xs pr-6">
+                        Первотёлки, гол
+                      </TableHead>
+                    </>
                   ) : (
                     <>
                       <TableHead className="text-right text-xs">
-                        Собственные первотёлки, гол
+                        Первотёлки, гол
                       </TableHead>
                       <TableHead className="text-right text-xs pr-6">
-                        Купленные нетели, гол
+                        Купленные, гол
                       </TableHead>
                     </>
                   )}
@@ -114,22 +136,34 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
                     {tableSet === "herd" ? (
                       <>
                         <TableCell className="text-right text-sm tabular-nums">
-                          {row.avgMilkingDays.toFixed(1)}
+                          {row.avg_dim.toFixed(1)}
                         </TableCell>
                         <TableCell className="text-right text-sm tabular-nums">
-                          {row.milkingHeadCount}
+                          {row.cows_count}
                         </TableCell>
                         <TableCell className="text-right text-sm tabular-nums pr-6">
-                          {row.dryHeadCount}
+                          {row.total_adults - row.cows_count}
+                        </TableCell>
+                      </>
+                    ) : tableSet === "milk" ? (
+                      <>
+                        <TableCell className="text-right text-sm tabular-nums">
+                          {row.total_adults}
+                        </TableCell>
+                        <TableCell className="text-right text-sm tabular-nums">
+                          {row.milk_total}
+                        </TableCell>
+                        <TableCell className="text-right text-sm tabular-nums pr-6">
+                          {row.first_calvings}
                         </TableCell>
                       </>
                     ) : (
                       <>
                         <TableCell className="text-right text-sm tabular-nums">
-                          {row.ownHeifers}
+                          {row.first_calvings}
                         </TableCell>
                         <TableCell className="text-right text-sm tabular-nums pr-6">
-                          {row.purchasedHeifers}
+                          {row.purchased ?? 0}
                         </TableCell>
                       </>
                     )}
@@ -150,7 +184,7 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
                   size="sm"
                   disabled={page === 0}
                   onClick={() => setPage(page - 1)}
-                  className="text-xs h-7"
+                  className="text-xs h-7 cursor-pointer"
                 >
                   Назад
                 </Button>
@@ -159,7 +193,7 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
                   size="sm"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage(page + 1)}
-                  className="text-xs h-7"
+                  className="text-xs h-7 cursor-pointer"
                 >
                   Далее
                 </Button>
@@ -167,7 +201,7 @@ export function ForecastTable({ data, periodMonths }: ForecastTableProps) {
             </div>
           )}
         </CardContent>
-      )}
+      </div>
     </Card>
   )
 }

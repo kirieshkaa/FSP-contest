@@ -1,1 +1,2 @@
 DROP SCHEMA IF EXISTS auth_service CASCADE;
+DROP SCHEMA IF EXISTS query_service;

@@ -89,6 +89,12 @@ class LoggingConfig(BaseModel):
     format: str = "json"
 
 
+class AdminConfig(BaseModel):
+    username: str = "admin"
+    email: str = "admin@example.com"
+    password: str = "admin"
+
+
 class UploadConfig(BaseModel):
     directory: str = "uploads"
     max_file_size_mb: int = 10
@@ -104,13 +110,14 @@ class AppConfig(BaseModel):
     email: EmailConfig
     security: SecurityConfig
     logging: LoggingConfig
+    admin: AdminConfig
     upload: UploadConfig
 
 
 ENV_VAR_MAPPING = {
     "server": {
-        "host": "SERVER_HOST",
-        "port": "SERVER_PORT",
+        "host": "BACKEND_HOST",
+        "port": "BACKEND_PORT",
     },
     "database": {
         "host": "POSTGRES_HOST",
@@ -140,6 +147,10 @@ ENV_VAR_MAPPING = {
     },
     "security": {
         "cookie_domain": "COOKIE_DOMAIN",
+    },
+    "admin": {
+        "username": "ADMIN_USERNAME",
+        "password": "ADMIN_PASSWORD",
     },
 }
 
@@ -183,6 +194,13 @@ def _merge_config(yaml_data: dict) -> dict:
                     result[section]["refresh_token"]["expiry_days"] = int(expiry)
                 except ValueError:
                     pass
+        elif section == "admin":
+            username = os.environ.get("ADMIN_USERNAME")
+            if username:
+                result[section]["username"] = username
+            password = os.environ.get("ADMIN_PASSWORD")
+            if password:
+                result[section]["password"] = password
         elif isinstance(mappings, dict):
             for key, env_var in mappings.items():
                 if env_var in os.environ:
@@ -222,5 +240,6 @@ def get_config() -> AppConfig:
         email=EmailConfig(**merged_data.get("email", {})),
         security=SecurityConfig(**merged_data.get("security", {})),
         logging=LoggingConfig(**merged_data.get("logging", {})),
+        admin=AdminConfig(**merged_data.get("admin", {})),
         upload=UploadConfig(**merged_data.get("upload", {})),
     )
